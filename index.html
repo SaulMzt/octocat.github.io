@@ -3,306 +3,384 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MinimalStore - Tienda En Línea</title>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <title>Tienda | Cirios Pascuales</title>
     <style>
-        /* ==========================================
-           VARIABLES Y ESTILOS BASE
-           ========================================== */
-        :root { --primary: #2563eb; --primary-hover: #1d4ed8; --bg-color: #f8fafc; --card-bg: #ffffff; --text-main: #0f172a; --text-muted: #64748b; --danger: #ef4444; --radius: 12px; --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); overflow-x: hidden; }
-        button { cursor: pointer; border: none; outline: none; transition: all 0.2s ease; font-weight: 600; border-radius: 8px; }
-        
+        /* --- ESTILOS CSS --- */
+        :root {
+            --primary: #c1a067; /* Dorado cálido */
+            --primary-dark: #a88d57;
+            --accent: #d7b57b; /* Oro pulido */
+            --text: #3e270d; /* Marrón oscuro */
+            --text-light: #6a4a2a;
+            --bg: #fffcf8; /* Crema suave */
+            --white: #ffffff;
+            --green: #458500; /* Verde oliva sprig */
+            --shadow: 0 4px 15px rgba(62, 39, 13, 0.1);
+            --radius: 10px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); overflow-x: hidden; }
+        button { cursor: pointer; border: none; transition: all 0.3s ease; border-radius: var(--radius); font-weight: 600; }
+        ul { list-style: none; }
+
+        /* --- NOTIFICACIONES --- */
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { background-color: var(--card-bg); color: var(--text-main); padding: 16px 24px; border-radius: 8px; box-shadow: var(--shadow); border-left: 5px solid var(--primary); animation: slideIn 0.3s ease-out forwards; font-size: 0.95rem; }
+        .toast { background-color: var(--white); border-left: 4px solid var(--primary); padding: 1rem 1.5rem; box-shadow: var(--shadow); border-radius: 8px; animation: slideIn 0.3s ease forwards; font-size: 0.9rem; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* --- HEADER --- */
+        header { background: var(--white); padding: 1.5rem 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); position: sticky; top: 0; z-index: 100; border-bottom: 2px solid #eee; }
+        .logo { font-size: 2.5rem; font-weight: 800; color: var(--primary); letter-spacing: -1.5px; position: relative; }
+        .logo::before, .logo::after { content: '🕯️'; position: absolute; font-size: 1.2rem; top: 10px; }
+        .logo::before { left: -35px; } .logo::after { right: -35px; }
+        .logo span { font-family: 'Playfair Display', serif; font-style: italic; color: var(--text); }
+        .logo-lavender { color: var(--green); font-size: 1rem; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); }
+
+        .nav-btns { display: flex; gap: 1rem; align-items: center; }
+        .btn-cart { background: none; font-size: 1.3rem; position: relative; color: var(--primary); }
+        .cart-badge { position: absolute; top: -8px; right: -10px; background-color: var(--green); color: white; font-size: 0.7rem; padding: 3px 7px; border-radius: 50px; font-weight: bold; }
+        .btn-admin { background: none; font-size: 0.8rem; color: var(--text-light); }
+
+        /* --- TIENDA (PRODUCTOS) --- */
+        .container { max-width: 1100px; margin: 3rem auto; padding: 0 20px; }
+        .shop-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('https://i.postimg.cc/qM6V3m6C/Gemini-Generated-Image-6wjh266wjh266wjh.png'); background-size: cover; background-position: center; opacity: 0.05; z-index: -1; }
         
-        header { background-color: var(--card-bg); padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
-        .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; }
-        .nav-actions { display: flex; align-items: center; gap: 1.5rem; }
-        .btn-cart { background: none; font-size: 1.2rem; position: relative; }
-        .cart-badge { position: absolute; top: -8px; right: -10px; background-color: var(--danger); color: white; font-size: 0.75rem; padding: 2px 6px; border-radius: 50px; font-weight: bold; }
-        
-        .container { max-width: 1200px; margin: 2rem auto; padding: 0 20px; }
-        .page-title { text-align: center; margin-bottom: 2rem; font-size: 2rem; color: var(--text-main); }
-        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 2rem; }
-        .product-card { background: var(--card-bg); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); transition: transform 0.3s ease; display: flex; flex-direction: column; }
-        .product-card:hover { transform: translateY(-5px); }
-        .product-img { width: 100%; height: 200px; object-fit: cover; background-color: #eee; }
-        .product-info { padding: 1.5rem; display: flex; flex-direction: column; flex-grow: 1; }
-        .product-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
-        .product-price { font-size: 1.25rem; color: var(--primary); font-weight: 800; margin-bottom: 1.5rem; }
-        .btn-add { background-color: var(--primary); color: white; padding: 0.75rem; width: 100%; margin-top: auto; }
-        .btn-add:hover { background-color: var(--primary-hover); }
-        .btn-add:disabled { background-color: #cbd5e1; cursor: not-allowed; }
-        
-        #cart-sidebar { position: fixed; top: 0; right: -400px; width: 380px; height: 100vh; background-color: var(--card-bg); box-shadow: -5px 0 15px rgba(0,0,0,0.1); transition: right 0.3s ease; z-index: 1000; display: flex; flex-direction: column; padding: 2rem; }
-        #cart-sidebar.open { right: 0; }
-        .cart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #e2e8f0; }
-        .btn-close { background: none; font-size: 1.5rem; color: var(--text-muted); }
-        .cart-items-container { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
-        .cart-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg-color); padding: 10px; border-radius: 8px; }
-        .cart-item-info h4 { font-size: 0.9rem; }
-        .cart-item-info p { color: var(--primary); font-weight: bold; }
-        .btn-remove { color: var(--danger); background: none; font-size: 0.85rem; }
-        .cart-footer { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0; }
-        .cart-total-text { font-size: 1.25rem; font-weight: 800; display: flex; justify-content: space-between; margin-bottom: 1rem; }
-        
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); display: none; justify-content: center; align-items: center; z-index: 2000; }
-        .modal-content { background: var(--card-bg); padding: 2rem; border-radius: var(--radius); width: 90%; max-width: 400px; box-shadow: var(--shadow); position: relative; }
-        .modal-title { margin-bottom: 1.5rem; font-size: 1.25rem; }
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 600; }
-        .form-group input, .form-group textarea { width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; }
-        .form-group input:focus, .form-group textarea:focus { border-color: var(--primary); }
-        .btn-cancel { background: none; color: var(--text-muted); width: 100%; padding: 0.75rem; margin-top: 0.5rem; }
-        
-        .chat-widget-btn { position: fixed; bottom: 20px; right: 20px; background: var(--primary); color: white; width: 60px; height: 60px; border-radius: 50%; font-size: 1.5rem; box-shadow: var(--shadow); display: flex; justify-content: center; align-items: center; z-index: 999; }
-        
-        @media (max-width: 600px) { #cart-sidebar { width: 100%; right: -100%; } .products-grid { grid-template-columns: 1fr; } }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2.5rem; margin-top: 2rem; }
+        .card { background: var(--white); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); transition: transform 0.3s; border: 1px solid #eee; }
+        .card:hover { transform: translateY(-7px); }
+        .card img { width: 100%; height: 350px; object-fit: cover; background: #eee; }
+        .card-body { padding: 1.5rem; text-align: center; }
+        .card-title { font-size: 1.2rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem; }
+        .card-price { color: var(--primary-dark); font-weight: 800; font-size: 1.4rem; margin-bottom: 1.5rem; }
+        .btn-add { width: 100%; background: var(--primary); color: white; padding: 0.9rem; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
+        .btn-add:hover { background: var(--primary-dark); }
+
+        /* --- CARRITO SIDEBAR --- */
+        #cart-sidebar { position: fixed; top: 0; right: -400px; width: 380px; height: 100%; background: var(--white); box-shadow: -5px 0 15px rgba(0,0,0,0.05); transition: 0.4s; z-index: 1000; padding: 2rem; display: flex; flex-direction: column; border-left: 2px solid #eee; }
+        #cart-sidebar.active { right: 0; }
+        .cart-header { display: flex; justify-content: space-between; margin-bottom: 2rem; color: var(--primary); }
+        .cart-items { flex-grow: 1; overflow-y: auto; }
+        .cart-item { display: flex; justify-content: space-between; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #f3f4f6; }
+        .cart-item-info h4 { font-size: 0.95rem; }
+        .btn-remove { color: var(--danger); font-size: 0.8rem; background: none; color: #ef4444; }
+        .cart-footer { padding-top: 1.5rem; }
+        .total-price { font-size: 1.7rem; font-weight: 800; margin-bottom: 1rem; display: block; color: var(--primary-dark); }
+
+        /* --- MODALES --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(4px); }
+        .modal { background: var(--white); padding: 2.5rem; border-radius: var(--radius); width: 90%; max-width: 450px; position: relative; border: 2px solid #eee; }
+        .input-group { margin-bottom: 1.2rem; }
+        .input-group label { display: block; margin-bottom: 0.6rem; font-size: 0.9rem; font-weight: 600; color: var(--text-light); }
+        .input-group input, .input-group textarea { width: 100%; padding: 0.9rem; border: 1px solid #ddd; border-radius: 8px; outline: none; }
+        .input-group input:focus, .input-group textarea:focus { border-color: var(--primary); }
+
+        /* --- PANEL ADMIN --- */
+        #admin-panel { display: none; background: #fdfdfd; padding-top: 2rem; }
+        .admin-section { background: var(--white); padding: 2rem; border-radius: var(--radius); margin-bottom: 2.5rem; box-shadow: var(--shadow); border: 1px solid #eee; }
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; font-size: 0.9rem; }
+        th, td { text-align: left; padding: 15px; border-bottom: 1px solid #eee; }
+        th { background: #f8fafc; color: var(--text-light); font-weight: 700; }
+
+        /* --- CHAT CLIENTE --- */
+        #chat-btn { position: fixed; bottom: 25px; right: 25px; width: 65px; height: 65px; background: var(--primary); color: white; border-radius: 50%; font-size: 1.8rem; box-shadow: var(--shadow); z-index: 500; }
+        #modal-chat .modal { max-width: 500px; }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 600px) { #cart-sidebar { width: 100%; } .logo { font-size: 2rem; } .logo::before, .logo::after { font-size: 1rem; top: 7px; } }
     </style>
 </head>
 <body>
-
+    <div class="shop-bg"></div>
     <div id="toast-container"></div>
 
     <header>
-        <div class="logo">MinimalStore</div>
-        <div class="nav-actions">
-            <button class="btn-cart" onclick="toggleCart()" id="nav-cart-btn">
-                🛒 <span class="cart-badge" id="cart-count">0</span>
-            </button>
+        <div class="logo">🕯️ <span>Tienda</span> 🕯️<span class="logo-lavender">🌿</span></div>
+        <div class="nav-btns">
+            <button onclick="toggleCart()" class="btn-cart">🛒<span id="cart-count">0</span></button>
+            <button onclick="showLogin()" id="btn-admin-view" class="btn-admin">Acceso</button>
+            <button onclick="logout()" id="btn-logout" style="display:none; background:#fee2e2; color:#ef4444; padding: 7px 20px;">Salir</button>
         </div>
     </header>
 
-    <main class="container" id="client-view">
-        <h1 class="page-title">Nuestros Productos</h1>
-        <div class="products-grid" id="products-container"></div>
-    </main>
+    <div id="client-view">
+        <main class="container">
+            <h1 style="text-align: center; color: var(--primary-dark); margin-bottom: 10px; font-family: 'Playfair Display', serif;">Colección Pascual 100% Cera de Abeja</h1>
+            <p style="text-align: center; color: var(--text-light); margin-bottom: 50px;">Artesanía sacra para iluminar tu hogar.</p>
+            <div class="grid" id="products-grid"></div>
+        </main>
+    </div>
 
-    <button class="chat-widget-btn" id="btn-chat-widget" onclick="openModal('chat-modal')">💬</button>
+    <div id="admin-panel" class="container">
+        <h1>Panel de Administración</h1><br>
+        <div class="admin-section">
+            <h2>Historial de Ventas (Nombres Completos)</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente (Nombre Completo)</th>
+                            <th>Productos</th>
+                            <th>Total</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-table"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="admin-section">
+            <h2>Mensajes de Clientes</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Mensaje</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody id="messages-table"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
     <div id="cart-sidebar">
         <div class="cart-header">
-            <h2>Tu Carrito</h2>
-            <button class="btn-close" onclick="toggleCart()">✖</button>
+            <h2>Tu Selección</h2>
+            <button onclick="toggleCart()" style="background:none; font-size: 1.8rem;">&times;</button>
         </div>
-        <div class="cart-items-container" id="cart-items-list"></div>
+        <div class="cart-items" id="cart-items"></div>
         <div class="cart-footer">
-            <div class="cart-total-text">
-                <span>Total:</span>
-                <span style="color: var(--primary)">$<span id="cart-total-price">0</span></span>
-            </div>
-            <button class="btn-add" id="btn-checkout-start" onclick="prepareCheckout()">Finalizar Compra</button>
+            <span class="total-price">Total: $<span id="total-amount">0</span></span>
+            <button class="btn-add" onclick="showCheckout()">Finalizar Compra</button>
         </div>
     </div>
 
-    <div class="modal-overlay" id="checkout-modal">
-        <div class="modal-content">
-            <h3 class="modal-title">Confirmar Pedido</h3>
-            <div class="form-group">
-                <label>Nombre Completo</label>
-                <input type="text" id="checkout-name" placeholder="Ej. Juan Pérez">
-            </div>
-            <div class="form-group">
-                <label>Teléfono o Correo (Para contactarte)</label>
-                <input type="text" id="checkout-contacto" placeholder="Tu WhatsApp o Email">
-            </div>
-            <button class="btn-add" id="btn-confirm-order" onclick="processCheckout()">Completar Pedido</button>
-            <button class="btn-cancel" onclick="closeModal('checkout-modal')">Cancelar</button>
+    <div id="modal-login" class="modal-overlay">
+        <div class="modal">
+            <h3>Acceso Administrador</h3><br>
+            <div class="input-group"><label>Usuario</label><input type="text" id="admin-user"></div>
+            <div class="input-group"><label>Contraseña</label><input type="password" id="admin-pass"></div>
+            <button class="btn-add" onclick="handleLogin()">Entrar</button>
+            <button onclick="hideModal('modal-login')" style="width:100%; margin-top:10px; background:none; color: var(--text-light);">Cancelar</button>
         </div>
     </div>
 
-    <div class="modal-overlay" id="chat-modal">
-        <div class="modal-content">
-            <h3 class="modal-title">Contacto con el Vendedor</h3>
-            <div class="form-group">
-                <label>Tu Nombre</label>
-                <input type="text" id="chat-name" placeholder="Ej. María Gómez">
+    <div id="modal-checkout" class="modal-overlay">
+        <div class="modal">
+            <h3>Confirmar Compra</h3><br>
+            <p style="font-size: 0.95rem; margin-bottom: 15px; color: var(--text-light);">Introduce tu **nombre completo** para procesar el pedido.</p>
+            <div class="input-group">
+                <label>Nombre Completo del Cliente</label>
+                <input type="text" id="customer-name" placeholder="Ej. Juan Pérez García">
             </div>
-            <div class="form-group">
-                <label>Mensaje</label>
-                <textarea id="chat-text" rows="4" placeholder="Escribe tu duda aquí..."></textarea>
-            </div>
-            <button class="btn-add" id="btn-send-msg" onclick="sendMessage()">Enviar Mensaje</button>
-            <button class="btn-cancel" onclick="closeModal('chat-modal')">Cerrar</button>
+            <button class="btn-add" onclick="confirmPurchase()">Completar Pedido</button>
+            <button onclick="hideModal('modal-checkout')" style="width:100%; margin-top:10px; background:none; color: var(--text-light);">Regresar</button>
+        </div>
+    </div>
+
+    <button id="chat-btn" onclick="showModal('modal-chat')">💬</button>
+    <div id="modal-chat" class="modal-overlay">
+        <div class="modal">
+            <h3>Enviar mensaje a la Tienda</h3><br>
+            <div class="input-group"><label>Tu Nombre</label><input type="text" id="chat-name"></div>
+            <div class="input-group"><label>Mensaje</label><textarea id="chat-msg" rows="5"></textarea></div>
+            <button class="btn-add" onclick="sendChatMessage()">Enviar Mensaje</button>
+            <button onclick="hideModal('modal-chat')" style="width:100%; margin-top:10px; background:none; color: var(--text-light);">Cerrar</button>
         </div>
     </div>
 
     <script>
-        // ==========================================
-        // 🚨 CONFIGURACIÓN DE EMAILJS (DATOS ACTUALIZADOS)
-        // ==========================================
-        const EMAILJS_SERVICE_ID = "service_ib4pcq3";
-        const EMAILJS_PUBLIC_KEY = "UcaURXHPZbk9c6EEF"; 
-        const EMAILJS_TEMPLATE_COMPRA = "template_2hedird"; 
-
-        // Inicializar EmailJS
-        (function() {
-            emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
-        })();
-
-        // ==========================================
-        // BASE DE DATOS DE PRODUCTOS
-        // ==========================================
+        /* --- JAVASCRIPT LOGIC --- */
+        // 1. DATA DE PRODUCTOS REEMPLAZADA POR IMÁGENES
         const productos = [
-            { id: 1, nombre: "Auriculares Noise Cancelling", precio: 120, imagen: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80" },
-            { id: 2, nombre: "Reloj Inteligente Ultra", precio: 250, imagen: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=80" },
-            { id: 3, nombre: "Cámara Retro Instantánea", precio: 90, imagen: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=500&q=80" },
-            { id: 4, nombre: "Mochila Urbana Impermeable", precio: 65, imagen: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500&q=80" }
+            { id: 1, nombre: "Cirio Pascual Cordero", precio: 130, imagen: "https://i.postimg.cc/qM6V3m6C/Gemini-Generated-Image-6wjh266wjh266wjh.png" },
+            { id: 2, nombre: "Cirio Pascual Celta", precio: 135, imagen: "https://i.postimg.cc/P5p3z3M5/Gemini-Generated-Image-ob4beaob4beaob4b.png" },
+            { id: 3, nombre: "Cirio Pascual Premium", precio: 350, imagen: "https://i.postimg.cc/T3qBfM2L/Gemini-Generated-Image-o355m5o355m5o355.png" },
+            { id: 4, nombre: "Cirio Pascual Clásico", precio: 135, imagen: "https://i.postimg.cc/Bnv8KkFk/Gemini-Generated-Image-c6olsrc6olsrc6ol.png" },
+            { id: 5, nombre: "Cirio Pascual Mini", precio: 75, imagen: "https://i.postimg.cc/Y9Z6H8M6/Gemini-Generated-Image-5pcnmk5pcnmk5pcn.png" },
+            { id: 6, nombre: "Cirio Pascual Económico G", precio: 200, imagen: "https://i.postimg.cc/P5LwR46M/Gemini-Generated-Image-8y93b8y93b8y93b.png" },
+            { id: 7, nombre: "Cirio Pascual Económico M", precio: 110, imagen: "https://i.postimg.cc/P5LwR46M/Gemini-Generated-Image-8y93b8y93b8y93b.png" },
+            { id: 8, nombre: "Cirio Pascual Económico P", precio: 50, imagen: "https://i.postimg.cc/P5LwR46M/Gemini-Generated-Image-8y93b8y93b8y93b.png" }
         ];
 
-        let carrito = JSON.parse(localStorage.getItem('minStore_cart')) || [];
+        // 2. ESTADO DE LA APP
+        let carrito = JSON.parse(localStorage.getItem('cart')) || [];
+        let orders = JSON.parse(localStorage.getItem('orders')) || [];
+        let messages = JSON.parse(localStorage.getItem('messages')) || [];
 
-        window.onload = () => {
-            renderProducts();
-            updateCartUI();
-        };
-
-        function showToast(message) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.innerText = message;
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 4000);
-        }
-
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
+        // 3. FUNCIONES DE TIENDA
         function renderProducts() {
-            const container = document.getElementById('products-container');
-            container.innerHTML = productos.map(p => `
-                <div class="product-card">
-                    <img src="${p.imagen}" alt="${p.nombre}" class="product-img">
-                    <div class="product-info">
-                        <div class="product-name">${p.nombre}</div>
-                        <div class="product-price">$${p.precio}</div>
-                        <button class="btn-add" onclick="addToCart(${p.id})">Agregar al carrito</button>
+            const grid = document.getElementById('products-grid');
+            grid.innerHTML = productos.map(p => `
+                <div class="card">
+                    <img src="${p.imagen}" alt="${p.nombre}">
+                    <div class="card-body">
+                        <div class="card-title">${p.nombre}</div>
+                        <div class="card-price">$${p.precio}</div>
+                        <button class="btn-add" onclick="addToCart(${p.id})">quiero esta vela</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        function toggleCart() { document.getElementById('cart-sidebar').classList.toggle('open'); }
-
-        function addToCart(productId) {
-            const producto = productos.find(p => p.id === productId);
-            carrito.push({ ...producto, cartItemId: Date.now() + Math.random() });
-            localStorage.setItem('minStore_cart', JSON.stringify(carrito));
+        function addToCart(id) {
+            const prod = productos.find(p => p.id === id);
+            carrito.push({ ...prod, cartId: Date.now() });
+            localStorage.setItem('cart', JSON.stringify(carrito));
             updateCartUI();
-            showToast(`"${producto.nombre}" agregado`);
+            notify(`"${prod.nombre}" añadido`);
         }
 
-        function removeFromCart(cartItemId) {
-            carrito = carrito.filter(item => item.cartItemId !== cartItemId);
-            localStorage.setItem('minStore_cart', JSON.stringify(carrito));
+        function removeFromCart(cartId) {
+            carrito = carrito.filter(item => item.cartId !== cartId);
+            localStorage.setItem('cart', JSON.stringify(carrito));
             updateCartUI();
         }
 
         function updateCartUI() {
-            document.getElementById('cart-count').innerText = carrito.length;
-            const list = document.getElementById('cart-items-list');
-            if (carrito.length === 0) {
-                list.innerHTML = '<p style="text-align:center; color:#64748b; margin-top:20px;">Tu carrito está vacío</p>';
-                document.getElementById('cart-total-price').innerText = '0';
-                return;
-            }
-            list.innerHTML = carrito.map(item => `
+            const container = document.getElementById('cart-items');
+            const totalEl = document.getElementById('total-amount');
+            const countEl = document.getElementById('cart-count');
+
+            container.innerHTML = carrito.map(item => `
                 <div class="cart-item">
-                    <div class="cart-item-info"><h4>${item.nombre}</h4><p>$${item.precio}</p></div>
-                    <button class="btn-remove" onclick="removeFromCart(${item.cartItemId})">Eliminar</button>
+                    <div class="cart-item-info">
+                        <h4>${item.nombre}</h4>
+                        <small>$${item.precio}</small>
+                    </div>
+                    <button class="btn-remove" onclick="removeFromCart(${item.cartId})">Eliminar</button>
                 </div>
             `).join('');
-            document.getElementById('cart-total-price').innerText = carrito.reduce((sum, item) => sum + item.precio, 0);
-        }
-
-        function prepareCheckout() {
-            if (carrito.length === 0) return showToast("El carrito está vacío.");
-            toggleCart();
-            openModal('checkout-modal');
-        }
-
-        function processCheckout() {
-            const nameInput = document.getElementById('checkout-name').value.trim();
-            const contactInput = document.getElementById('checkout-contacto').value.trim();
-            const btn = document.getElementById('btn-confirm-order');
-
-            if (!nameInput || !contactInput) return showToast("Por favor llena ambos campos.");
-
-            // Desactivar botón para no enviar doble
-            btn.innerText = "Enviando pedido...";
-            btn.disabled = true;
 
             const total = carrito.reduce((sum, item) => sum + item.precio, 0);
-            const productosNombres = carrito.map(item => item.nombre).join(', ');
-            const orderId = 'ORD-' + Math.floor(Math.random() * 10000);
-
-            // Parámetros que se envían a EmailJS
-            const templateParams = {
-                order_id: orderId,
-                cliente_nombre: nameInput,
-                cliente_contacto: contactInput,
-                productos_lista: productosNombres,
-                total_pagar: total
-            };
-
-            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_COMPRA, templateParams)
-                .then(function(response) {
-                    showToast(`¡Pedido exitoso! Te contactaremos pronto.`);
-                    carrito = [];
-                    localStorage.setItem('minStore_cart', JSON.stringify(carrito));
-                    updateCartUI();
-                    closeModal('checkout-modal');
-                })
-                .catch(function(error) {
-                    showToast("Hubo un error de conexión al enviar el pedido.");
-                    console.log("FAILED...", error);
-                })
-                .finally(function() {
-                    btn.innerText = "Completar Pedido";
-                    btn.disabled = false;
-                    document.getElementById('checkout-name').value = '';
-                    document.getElementById('checkout-contacto').value = '';
-                });
+            totalEl.innerText = total;
+            countEl.innerText = carrito.length;
         }
 
-        function sendMessage() {
-            const name = document.getElementById('chat-name').value.trim();
-            const text = document.getElementById('chat-text').value.trim();
-            const btn = document.getElementById('btn-send-msg');
+        function toggleCart() { document.getElementById('cart-sidebar').classList.toggle('active'); }
 
-            if (!name || !text) return showToast("Debes ingresar tu nombre y un mensaje.");
+        // 4. FUNCIONES DE COMPRA Y ADMIN
+        function showCheckout() {
+            if (carrito.length === 0) return notify("Carrito vacío", "error");
+            toggleCart();
+            showModal('modal-checkout');
+        }
 
-            btn.innerText = "Enviando...";
-            btn.disabled = true;
+        function confirmPurchase() {
+            const nameInput = document.getElementById('customer-name').value;
+            if (!nameInput) return notify("Introduce tu nombre completo", "error");
 
-            // Reutilizamos el mismo template para enviar mensajes
-            const templateParams = {
-                order_id: "MENSAJE DE CHAT",
-                cliente_nombre: name,
-                cliente_contacto: "N/A",
-                productos_lista: "Mensaje: " + text,
-                total_pagar: "0"
+            const total = carrito.reduce((sum, item) => sum + item.precio, 0);
+            const order = {
+                id: 'ORD-' + Math.floor(Math.random() * 1000000),
+                cliente: nameInput,
+                productos: carrito.map(i => i.nombre).join(', '),
+                total: total,
+                fecha: new Date().toLocaleString()
             };
 
-            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_COMPRA, templateParams)
-                .then(function() {
-                    showToast("Mensaje enviado a la tienda.");
-                    closeModal('chat-modal');
-                })
-                .catch(function(error) {
-                    showToast("Error al enviar el mensaje.");
-                })
-                .finally(function() {
-                    btn.innerText = "Enviar Mensaje";
-                    btn.disabled = false;
-                    document.getElementById('chat-name').value = '';
-                    document.getElementById('chat-text').value = '';
-                });
+            orders.push(order);
+            localStorage.setItem('orders', JSON.stringify(orders));
+            notify("¡Gracias por tu compra! ID: " + order.id);
+            
+            carrito = [];
+            localStorage.removeItem('cart');
+            updateCartUI();
+            hideModal('modal-checkout');
+            document.getElementById('customer-name').value = ''; 
         }
+
+        function renderAdminData() {
+            const ordersTable = document.getElementById('orders-table');
+            const messagesTable = document.getElementById('messages-table');
+
+            ordersTable.innerHTML = orders.map(o => `
+                <tr>
+                    <td>${o.id}</td>
+                    <td>${o.cliente}</td>
+                    <td>${o.productos}</td>
+                    <td>$${o.total}</td>
+                    <td>${o.fecha}</td>
+                </tr>
+            `).join('');
+
+            messagesTable.innerHTML = messages.map(m => `
+                <tr>
+                    <td>${m.nombre}</td>
+                    <td>${m.mensaje}</td>
+                    <td>${m.fecha}</td>
+                </tr>
+            `).join('');
+        }
+
+        function handleLogin() {
+            const user = document.getElementById('admin-user').value;
+            const pass = document.getElementById('admin-pass').value;
+            if (user === 'admin' && pass === '1234') {
+                document.getElementById('modal-login').style.display = 'none';
+                document.getElementById('client-view').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'block';
+                document.getElementById('btn-admin-view').style.display = 'none';
+                document.getElementById('btn-logout').style.display = 'block';
+                renderAdminData();
+                notify("Sesión iniciada");
+            } else {
+                notify("Credenciales incorrectas", "error");
+            }
+        }
+
+        function logout() {
+            document.getElementById('admin-panel').style.display = 'none';
+            document.getElementById('client-view').style.display = 'block';
+            document.getElementById('btn-admin-view').style.display = 'block';
+            document.getElementById('btn-logout').style.display = 'none';
+            notify("Sesión cerrada");
+        }
+
+        function showLogin() { showModal('modal-login'); }
+
+        // 5. CHAT CLIENTE
+        function sendChatMessage() {
+            const name = document.getElementById('chat-name').value;
+            const msg = document.getElementById('chat-msg').value;
+            if (!name || !msg) return notify("Completa todos los campos", "error");
+
+            const message = {
+                nombre: name,
+                mensaje: msg,
+                fecha: new Date().toLocaleString()
+            };
+
+            messages.push(message);
+            localStorage.setItem('messages', JSON.stringify(messages));
+            notify("Mensaje enviado");
+            hideModal('modal-chat');
+            document.getElementById('chat-name').value = '';
+            document.getElementById('chat-msg').value = '';
+        }
+
+        // 6. UTILIDADES
+        function showModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function hideModal(id) { document.getElementById(id).style.display = 'none'; }
+        
+        function notify(text, type = "success") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            if (type === "error") toast.style.borderLeftColor = "#ef4444";
+            toast.innerText = text;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // 7. INICIALIZACIÓN
+        renderProducts();
+        updateCartUI();
     </script>
 </body>
 </html>
