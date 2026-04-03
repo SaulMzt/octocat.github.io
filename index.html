@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cirio Pascual - Tienda Oficial</title>
+    <style>
+        /* --- CSS ESTILOS --- */
+        :root {
+            --primary: #b08d57;
+            --primary-dark: #8e6d3a;
+            --accent: #f4e4bc;
+            --bg: #fafafa;
+            --text: #333;
+            --white: #ffffff;
+            --shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+        body { background-color: var(--bg); color: var(--text); overflow-x: hidden; }
+
+        /* Navegación */
+        header {
+            background: var(--white);
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo { font-size: 1.5rem; font-weight: bold; color: var(--primary); text-transform: uppercase; letter-spacing: 2px; }
+
+        .nav-actions { display: flex; gap: 15px; align-items: center; }
+
+        button {
+            padding: 8px 16px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-outline:hover { background: var(--accent); }
+
+        /* Contenedor Principal */
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 20px; }
+
+        .hero { text-align: center; margin-bottom: 3rem; }
+        .hero h1 { font-size: 2.5rem; color: var(--primary-dark); margin-bottom: 10px; }
+
+        /* Tienda Dinámica */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .product-card {
+            background: var(--white);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-card:hover { transform: translateY(-10px); }
+
+        .product-img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            background: #eee;
+        }
+
+        .product-info { padding: 20px; text-align: center; flex-grow: 1; }
+        .product-price { font-size: 1.25rem; font-weight: bold; color: var(--primary-dark); margin: 10px 0; }
+
+        /* Carrito lateral */
+        #cart-sidebar {
+            position: fixed;
+            right: -400px;
+            top: 0;
+            width: 350px;
+            height: 100%;
+            background: var(--white);
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            transition: 0.3s;
+            z-index: 2000;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #cart-sidebar.active { right: 0; }
+
+        .cart-items { flex-grow: 1; overflow-y: auto; margin-top: 20px; }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .remove-item { color: red; cursor: pointer; font-size: 0.8rem; }
+
+        /* Modales Auth */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+
+        .modal-content {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+
+        /* Chat Widget */
+        #chat-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        #chat-window {
+            width: 300px;
+            height: 400px;
+            background: var(--white);
+            box-shadow: var(--shadow);
+            border-radius: 10px;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .chat-header { background: var(--primary); color: white; padding: 10px; font-weight: bold; }
+        #chat-messages { flex-grow: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .message { padding: 8px 12px; border-radius: 15px; max-width: 80%; font-size: 0.9rem; }
+        .user-msg { background: var(--accent); align-self: flex-end; }
+        .seller-msg { background: #eee; align-self: flex-start; }
+        .chat-input { display: flex; padding: 10px; border-top: 1px solid #eee; }
+        .chat-input input { flex-grow: 1; border: 1px solid #ddd; padding: 5px; border-radius: 3px; }
+
+        /* Alertas personalizadas */
+        #custom-alert {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 30px;
+            border-radius: 50px;
+            background: #333;
+            color: white;
+            z-index: 4000;
+            display: none;
+            animation: fadeInOut 3s forwards;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -20px); }
+            15% { opacity: 1; transform: translate(-50%, 0); }
+            85% { opacity: 1; transform: translate(-50%, 0); }
+            100% { opacity: 0; transform: translate(-50%, -20px); }
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            #cart-sidebar { width: 100%; }
+            .hero h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="custom-alert"></div>
+
+    <header>
+        <div class="logo">🕯️ CIRIO PASCUAL</div>
+        <div class="nav-actions" id="user-nav">
+            <button class="btn-outline" onclick="openModal('login-modal')">Ingresar</button>
+            <button class="btn-primary" onclick="openModal('register-modal')">Registro</button>
+        </div>
+        <button class="btn-primary" onclick="toggleCart()">🛒 <span id="cart-count">0</span></button>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <h1>Colección de Cera de Abeja 100% Natural</h1>
+            <p>Artesanía sacra para iluminar tu hogar esta Pascua.</p>
+        </section>
+
+        <div class="products-grid" id="product-container"></div>
+    </main>
+
+    <div id="cart-sidebar">
+        <div style="display:flex; justify-content: space-between; align-items: center;">
+            <h2>Tu Carrito</h2>
+            <button onclick="toggleCart()">✕</button>
+        </div>
+        <div class="cart-items" id="cart-items"></div>
+        <div style="padding-top: 20px; border-top: 2px solid #eee;">
+            <h3>Total: $<span id="cart-total">0</span></h3>
+            <button class="btn-primary" style="width:100%; margin-top:15px;" onclick="showAlert('¡Gracias por tu compra! (Simulación)')">Finalizar Compra</button>
+        </div>
+    </div>
+
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <button style="position:absolute; right:15px; top:10px;" onclick="closeModals()">✕</button>
+            <h2>Iniciar Sesión</h2><br>
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Correo</label>
+                    <input type="email" id="login-email" required>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="login-pass" required>
+                </div>
+                <button type="submit" class="btn-primary" style="width:100%">Entrar</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="register-modal" class="modal">
+        <div class="modal-content">
+            <button style="position:absolute; right:15px; top:10px;" onclick="closeModals()">✕</button>
+            <h2>Crear Cuenta</h2><br>
+            <form onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label>Nombre</label>
+                    <input type="text" id="reg-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Correo</label>
+                    <input type="email" id="reg-email" required>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="reg-pass" required>
+                </div>
+                <button type="submit" class="btn-primary" style="width:100%">Registrarse</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="chat-widget">
+        <div id="chat-window">
+            <div class="chat-header">Chat con el Vendedor</div>
+            <div id="chat-messages"></div>
+            <form class="chat-input" onsubmit="handleSendMessage(event)">
+                <input type="text" id="chat-input-text" placeholder="Escribe un mensaje..." required>
+                <button type="submit" class="btn-primary">></button>
+            </form>
+        </div>
+        <button class="btn-primary" style="border-radius: 50px; width: 60px; height: 60px; font-size: 24px;" onclick="toggleChat()">💬</button>
+    </div>
+
+    <script>
+        /* --- JAVASCRIPT LOGIC --- */
+
+        // 1. DATA DE PRODUCTOS
+        const productos = [
+            { id: 1, nombre: "Cirio Pascual Cordero de Dios", precio: 130, imagen: "https://i.postimg.cc/qM6V3m6C/Gemini-Generated-Image-6wjh266wjh266wjh.png" },
+            { id: 2, nombre: "Cirio Celta Ornamental", precio: 135, imagen: "https://i.postimg.cc/P5p3z3M5/Gemini-Generated-Image-ob4beaob4beaob4b.png" },
+            { id: 3, nombre: "Cirio Premium Grabado", precio: 350, imagen: "https://i.postimg.cc/T3qBfM2L/Gemini-Generated-Image-o355m5o355m5o355.png" },
+            { id: 4, nombre: "Cirio Pascual Clásico", precio: 135, imagen: "https://i.postimg.cc/Bnv8KkFk/Gemini-Generated-Image-c6olsrc6olsrc6ol.png" },
+            { id: 5, nombre: "Mini Cirio Artesanal", precio: 75, imagen: "https://i.postimg.cc/Y9Z6H8M6/Gemini-Generated-Image-5pcnmk5pcnmk5pcn.png" }
+        ];
+
+        let carrito = JSON.parse(localStorage.getItem('cart')) || [];
+        let usuarioLogueado = JSON.parse(localStorage.getItem('loggedUser')) || null;
+        let chatHistory = JSON.parse(localStorage.getItem('chat')) || [
+            { sender: 'seller', text: '¡Hola! ¿En qué puedo ayudarte con nuestros cirios?' }
+        ];
+
+        // 2. RENDERIZAR PRODUCTOS
+        function renderProducts() {
+            const container = document.getElementById('product-container');
+            container.innerHTML = productos.map(p => `
+                <div class="product-card">
+                    <img src="${p.imagen}" alt="${p.nombre}" class="product-img">
+                    <div class="product-info">
+                        <h3>${p.nombre}</h3>
+                        <p class="product-price">$${p.precio}</p>
+                        <button class="btn-primary" onclick="addToCart(${p.id})">Agregar al Carrito</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 3. SISTEMA DE USUARIOS
+        function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const pass = document.getElementById('reg-pass').value;
+
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+            if(users.find(u => u.email === email)) return showAlert("El correo ya existe");
+
+            users.push({name, email, pass});
+            localStorage.setItem('users', JSON.stringify(users));
+            showAlert("¡Registro exitoso! Ya puedes iniciar sesión.");
+            closeModals();
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+
+            const user = users.find(u => u.email === email && u.pass === pass);
+            if(user) {
+                usuarioLogueado = user;
+                localStorage.setItem('loggedUser', JSON.stringify(user));
+                updateUI();
+                closeModals();
+                showAlert("Bienvenido de nuevo, " + user.name);
+            } else {
+                showAlert("Credenciales incorrectas");
+            }
+        }
+
+        function logout() {
+            usuarioLogueado = null;
+            localStorage.removeItem('loggedUser');
+            updateUI();
+            showAlert("Sesión cerrada");
+        }
+
+        function updateUI() {
+            const nav = document.getElementById('user-nav');
+            if(usuarioLogueado) {
+                nav.innerHTML = `
+                    <span>Hola, <b>${usuarioLogueado.name}</b></span>
+                    <button class="btn-outline" onclick="logout()">Salir</button>
+                `;
+            } else {
+                nav.innerHTML = `
+                    <button class="btn-outline" onclick="openModal('login-modal')">Ingresar</button>
+                    <button class="btn-primary" onclick="openModal('register-modal')">Registro</button>
+                `;
+            }
+            updateCartUI();
+            renderChat();
+        }
+
+        // 4. CARRITO
+        function addToCart(id) {
+            const prod = productos.find(p => p.id === id);
+            carrito.push(prod);
+            localStorage.setItem('cart', JSON.stringify(carrito));
+            updateCartUI();
+            showAlert("Producto añadido 🕯️");
+        }
+
+        function removeFromCart(index) {
+            carrito.splice(index, 1);
+            localStorage.setItem('cart', JSON.stringify(carrito));
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const list = document.getElementById('cart-items');
+            const totalSpan = document.getElementById('cart-total');
+            const countSpan = document.getElementById('cart-count');
+            
+            list.innerHTML = carrito.map((item, index) => `
+                <div class="cart-item">
+                    <div>
+                        <div>${item.nombre}</div>
+                        <small>$${item.precio}</small>
+                    </div>
+                    <span class="remove-item" onclick="removeFromCart(${index})">Eliminar</span>
+                </div>
+            `).join('');
+
+            const total = carrito.reduce((sum, item) => sum + item.precio, 0);
+            totalSpan.innerText = total;
+            countSpan.innerText = carrito.length;
+        }
+
+        // 5. CHAT
+        function toggleChat() {
+            const win = document.getElementById('chat-window');
+            win.style.display = win.style.display === 'flex' ? 'none' : 'flex';
+            renderChat();
+        }
+
+        function handleSendMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('chat-input-text');
+            const msg = input.value;
+            
+            chatHistory.push({ sender: 'user', text: msg });
+            input.value = '';
+            renderChat();
+
+            // Respuesta automática simulada
+            setTimeout(() => {
+                const responses = [
+                    "Claro, todos nuestros cirios son 100% cera de abeja.",
+                    "Hacemos envíos a todo el país.",
+                    "¿Te gustaría saber más sobre algún modelo en específico?",
+                    "El tiempo de entrega es de 3 a 5 días hábiles."
+                ];
+                const randomResp = responses[Math.floor(Math.random() * responses.length)];
+                chatHistory.push({ sender: 'seller', text: randomResp });
+                localStorage.setItem('chat', JSON.stringify(chatHistory));
+                renderChat();
+            }, 1000);
+        }
+
+        function renderChat() {
+            const container = document.getElementById('chat-messages');
+            container.innerHTML = chatHistory.map(m => `
+                <div class="message ${m.sender === 'user' ? 'user-msg' : 'seller-msg'}">
+                    ${m.text}
+                </div>
+            `).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // 6. UTILIDADES (MODALES Y ALERTAS)
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
+        function toggleCart() { document.getElementById('cart-sidebar').classList.toggle('active'); }
+        
+        function showAlert(text) {
+            const alert = document.getElementById('custom-alert');
+            alert.innerText = text;
+            alert.style.display = 'block';
+            setTimeout(() => { alert.style.display = 'none'; }, 3000);
+        }
+
+        // Inicialización
+        window.onload = () => {
+            renderProducts();
+            updateUI();
+        };
+    </script>
+</body>
+</html>
