@@ -38,8 +38,6 @@
         .logo-lavender { color: var(--green); font-size: 1rem; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); }
 
         .nav-btns { display: flex; gap: 1rem; align-items: center; }
-        .btn-cart { background: none; font-size: 1.3rem; position: relative; color: var(--primary); }
-        .cart-badge { position: absolute; top: -8px; right: -10px; background-color: var(--green); color: white; font-size: 0.7rem; padding: 3px 7px; border-radius: 50px; font-weight: bold; }
         .btn-admin { background: none; font-size: 0.8rem; color: var(--text-light); }
 
         /* --- TIENDA (PRODUCTOS) --- */
@@ -56,17 +54,6 @@
         .btn-add { width: 100%; background: var(--primary); color: white; padding: 0.9rem; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
         .btn-add:hover { background: var(--primary-dark); }
 
-        /* --- CARRITO SIDEBAR --- */
-        #cart-sidebar { position: fixed; top: 0; right: -400px; width: 380px; height: 100%; background: var(--white); box-shadow: -5px 0 15px rgba(0,0,0,0.05); transition: 0.4s; z-index: 1000; padding: 2rem; display: flex; flex-direction: column; border-left: 2px solid #eee; }
-        #cart-sidebar.active { right: 0; }
-        .cart-header { display: flex; justify-content: space-between; margin-bottom: 2rem; color: var(--primary); }
-        .cart-items { flex-grow: 1; overflow-y: auto; }
-        .cart-item { display: flex; justify-content: space-between; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #f3f4f6; }
-        .cart-item-info h4 { font-size: 0.95rem; }
-        .btn-remove { color: var(--danger); font-size: 0.8rem; background: none; color: #ef4444; }
-        .cart-footer { padding-top: 1.5rem; }
-        .total-price { font-size: 1.7rem; font-weight: 800; margin-bottom: 1rem; display: block; color: var(--primary-dark); }
-
         /* --- MODALES --- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(4px); }
         .modal { background: var(--white); padding: 2.5rem; border-radius: var(--radius); width: 90%; max-width: 450px; position: relative; border: 2px solid #eee; }
@@ -74,6 +61,11 @@
         .input-group label { display: block; margin-bottom: 0.6rem; font-size: 0.9rem; font-weight: 600; color: var(--text-light); }
         .input-group input, .input-group textarea { width: 100%; padding: 0.9rem; border: 1px solid #ddd; border-radius: 8px; outline: none; }
         .input-group input:focus, .input-group textarea:focus { border-color: var(--primary); }
+
+        /* Resumen de producto en checkout */
+        .checkout-summary { background-color: var(--bg); padding: 15px; border-radius: 8px; border: 1px dashed var(--primary); margin-bottom: 20px; text-align: center; }
+        .checkout-summary h4 { color: var(--primary-dark); font-size: 1.1rem; margin-bottom: 5px; }
+        .checkout-summary p { font-size: 1.2rem; font-weight: bold; color: var(--text); }
 
         /* --- PANEL ADMIN --- */
         #admin-panel { display: none; background: #fdfdfd; padding-top: 2rem; }
@@ -88,7 +80,7 @@
         #modal-chat .modal { max-width: 500px; }
 
         /* --- RESPONSIVE --- */
-        @media (max-width: 600px) { #cart-sidebar { width: 100%; } .logo { font-size: 2rem; } .logo::before, .logo::after { font-size: 1rem; top: 7px; } }
+        @media (max-width: 600px) { .logo { font-size: 2rem; } .logo::before, .logo::after { font-size: 1rem; top: 7px; } }
     </style>
 </head>
 <body>
@@ -98,7 +90,6 @@
     <header>
         <div class="logo">🕯️ <span>Tienda</span> 🕯️<span class="logo-lavender">🌿</span></div>
         <div class="nav-btns">
-            <button onclick="toggleCart()" class="btn-cart">🛒<span id="cart-count">0</span></button>
             <button onclick="showLogin()" id="btn-admin-view" class="btn-admin">Acceso</button>
             <button onclick="logout()" id="btn-logout" style="display:none; background:#fee2e2; color:#ef4444; padding: 7px 20px;">Salir</button>
         </div>
@@ -115,14 +106,14 @@
     <div id="admin-panel" class="container">
         <h1>Panel de Administración</h1><br>
         <div class="admin-section">
-            <h2>Historial de Ventas (Nombres Completos)</h2>
+            <h2>Historial de Ventas Directas</h2>
             <div class="table-wrapper">
                 <table>
                     <thead>
                         <tr>
                             <th>ID</th>
                             <th>Cliente (Nombre Completo)</th>
-                            <th>Productos</th>
+                            <th>Producto Comprado</th>
                             <th>Total</th>
                             <th>Fecha</th>
                         </tr>
@@ -148,18 +139,6 @@
         </div>
     </div>
 
-    <div id="cart-sidebar">
-        <div class="cart-header">
-            <h2>Tu Selección</h2>
-            <button onclick="toggleCart()" style="background:none; font-size: 1.8rem;">&times;</button>
-        </div>
-        <div class="cart-items" id="cart-items"></div>
-        <div class="cart-footer">
-            <span class="total-price">Total: $<span id="total-amount">0</span></span>
-            <button class="btn-add" onclick="showCheckout()">Finalizar Compra</button>
-        </div>
-    </div>
-
     <div id="modal-login" class="modal-overlay">
         <div class="modal">
             <h3>Acceso Administrador</h3><br>
@@ -172,14 +151,21 @@
 
     <div id="modal-checkout" class="modal-overlay">
         <div class="modal">
-            <h3>Confirmar Compra</h3><br>
-            <p style="font-size: 0.95rem; margin-bottom: 15px; color: var(--text-light);">Introduce tu **nombre completo** para procesar el pedido.</p>
+            <h3 style="text-align: center; color: var(--primary-dark); margin-bottom: 15px;">Confirmar Pedido</h3>
+            
+            <div class="checkout-summary">
+                <h4 id="checkout-product-name">Nombre de la Vela</h4>
+                <p id="checkout-product-price">$0</p>
+            </div>
+
+            <p style="font-size: 0.95rem; margin-bottom: 15px; color: var(--text-light); text-align: center;">Introduce tu <b>nombre completo</b> para registrar tu pedido.</p>
+            
             <div class="input-group">
-                <label>Nombre Completo del Cliente</label>
                 <input type="text" id="customer-name" placeholder="Ej. Juan Pérez García">
             </div>
-            <button class="btn-add" onclick="confirmPurchase()">Completar Pedido</button>
-            <button onclick="hideModal('modal-checkout')" style="width:100%; margin-top:10px; background:none; color: var(--text-light);">Regresar</button>
+            
+            <button class="btn-add" onclick="confirmPurchase()">Confirmar Compra</button>
+            <button onclick="hideModal('modal-checkout')" style="width:100%; margin-top:10px; background:none; color: var(--text-light);">Cancelar y volver</button>
         </div>
     </div>
 
@@ -196,7 +182,7 @@
 
     <script>
         /* --- JAVASCRIPT LOGIC --- */
-        // 1. DATA DE PRODUCTOS REEMPLAZADA POR IMÁGENES
+        // 1. DATA DE PRODUCTOS
         const productos = [
             { id: 1, nombre: "Cirio Pascual Cordero", precio: 130, imagen: "https://i.postimg.cc/qM6V3m6C/Gemini-Generated-Image-6wjh266wjh266wjh.png" },
             { id: 2, nombre: "Cirio Pascual Celta", precio: 135, imagen: "https://i.postimg.cc/P5p3z3M5/Gemini-Generated-Image-ob4beaob4beaob4b.png" },
@@ -209,11 +195,11 @@
         ];
 
         // 2. ESTADO DE LA APP
-        let carrito = JSON.parse(localStorage.getItem('cart')) || [];
         let orders = JSON.parse(localStorage.getItem('orders')) || [];
         let messages = JSON.parse(localStorage.getItem('messages')) || [];
+        let productoSeleccionado = null; // Guarda el producto que se está comprando
 
-        // 3. FUNCIONES DE TIENDA
+        // 3. RENDERIZAR PRODUCTOS
         function renderProducts() {
             const grid = document.getElementById('products-grid');
             grid.innerHTML = productos.map(p => `
@@ -222,98 +208,73 @@
                     <div class="card-body">
                         <div class="card-title">${p.nombre}</div>
                         <div class="card-price">$${p.precio}</div>
-                        <button class="btn-add" onclick="addToCart(${p.id})">quiero esta vela</button>
+                        <button class="btn-add" onclick="iniciarCompra(${p.id})">quiero esta vela</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        function addToCart(id) {
-            const prod = productos.find(p => p.id === id);
-            carrito.push({ ...prod, cartId: Date.now() });
-            localStorage.setItem('cart', JSON.stringify(carrito));
-            updateCartUI();
-            notify(`"${prod.nombre}" añadido`);
-        }
-
-        function removeFromCart(cartId) {
-            carrito = carrito.filter(item => item.cartId !== cartId);
-            localStorage.setItem('cart', JSON.stringify(carrito));
-            updateCartUI();
-        }
-
-        function updateCartUI() {
-            const container = document.getElementById('cart-items');
-            const totalEl = document.getElementById('total-amount');
-            const countEl = document.getElementById('cart-count');
-
-            container.innerHTML = carrito.map(item => `
-                <div class="cart-item">
-                    <div class="cart-item-info">
-                        <h4>${item.nombre}</h4>
-                        <small>$${item.precio}</small>
-                    </div>
-                    <button class="btn-remove" onclick="removeFromCart(${item.cartId})">Eliminar</button>
-                </div>
-            `).join('');
-
-            const total = carrito.reduce((sum, item) => sum + item.precio, 0);
-            totalEl.innerText = total;
-            countEl.innerText = carrito.length;
-        }
-
-        function toggleCart() { document.getElementById('cart-sidebar').classList.toggle('active'); }
-
-        // 4. FUNCIONES DE COMPRA Y ADMIN
-        function showCheckout() {
-            if (carrito.length === 0) return notify("Carrito vacío", "error");
-            toggleCart();
+        // 4. FUNCIONES DE COMPRA DIRECTA
+        function iniciarCompra(id) {
+            // Buscamos la información de la vela seleccionada
+            productoSeleccionado = productos.find(p => p.id === id);
+            
+            // Actualizamos la ventana de confirmación con los datos de la vela
+            document.getElementById('checkout-product-name').innerText = productoSeleccionado.nombre;
+            document.getElementById('checkout-product-price').innerText = "$" + productoSeleccionado.precio;
+            
+            // Abrimos la ventana
             showModal('modal-checkout');
         }
 
         function confirmPurchase() {
-            const nameInput = document.getElementById('customer-name').value;
-            if (!nameInput) return notify("Introduce tu nombre completo", "error");
+            const nameInput = document.getElementById('customer-name').value.trim();
+            
+            if (!nameInput) return notify("Por favor, introduce tu nombre completo", "error");
 
-            const total = carrito.reduce((sum, item) => sum + item.precio, 0);
+            // Creamos el registro del pedido
             const order = {
                 id: 'ORD-' + Math.floor(Math.random() * 1000000),
                 cliente: nameInput,
-                productos: carrito.map(i => i.nombre).join(', '),
-                total: total,
+                productos: productoSeleccionado.nombre,
+                total: productoSeleccionado.precio,
                 fecha: new Date().toLocaleString()
             };
 
+            // Guardamos en la "Base de Datos" (LocalStorage)
             orders.push(order);
             localStorage.setItem('orders', JSON.stringify(orders));
-            notify("¡Gracias por tu compra! ID: " + order.id);
             
-            carrito = [];
-            localStorage.removeItem('cart');
-            updateCartUI();
+            // Mensaje de éxito
+            notify("¡Gracias por tu compra, " + nameInput + "! Tu pedido ha sido registrado.");
+            
+            // Limpiamos y cerramos
             hideModal('modal-checkout');
             document.getElementById('customer-name').value = ''; 
+            productoSeleccionado = null;
         }
 
+        // 5. FUNCIONES DEL PANEL ADMIN
         function renderAdminData() {
             const ordersTable = document.getElementById('orders-table');
             const messagesTable = document.getElementById('messages-table');
 
-            ordersTable.innerHTML = orders.map(o => `
+            // Mostrar órdenes de la más nueva a la más vieja
+            ordersTable.innerHTML = [...orders].reverse().map(o => `
                 <tr>
-                    <td>${o.id}</td>
+                    <td><strong>${o.id}</strong></td>
                     <td>${o.cliente}</td>
                     <td>${o.productos}</td>
-                    <td>$${o.total}</td>
-                    <td>${o.fecha}</td>
+                    <td style="color:var(--primary-dark); font-weight:bold;">$${o.total}</td>
+                    <td><small>${o.fecha}</small></td>
                 </tr>
             `).join('');
 
-            messagesTable.innerHTML = messages.map(m => `
+            messagesTable.innerHTML = [...messages].reverse().map(m => `
                 <tr>
-                    <td>${m.nombre}</td>
+                    <td><strong>${m.nombre}</strong></td>
                     <td>${m.mensaje}</td>
-                    <td>${m.fecha}</td>
+                    <td><small>${m.fecha}</small></td>
                 </tr>
             `).join('');
         }
@@ -344,10 +305,10 @@
 
         function showLogin() { showModal('modal-login'); }
 
-        // 5. CHAT CLIENTE
+        // 6. CHAT CLIENTE
         function sendChatMessage() {
-            const name = document.getElementById('chat-name').value;
-            const msg = document.getElementById('chat-msg').value;
+            const name = document.getElementById('chat-name').value.trim();
+            const msg = document.getElementById('chat-msg').value.trim();
             if (!name || !msg) return notify("Completa todos los campos", "error");
 
             const message = {
@@ -358,13 +319,14 @@
 
             messages.push(message);
             localStorage.setItem('messages', JSON.stringify(messages));
-            notify("Mensaje enviado");
+            notify("Mensaje enviado al vendedor");
+            
             hideModal('modal-chat');
             document.getElementById('chat-name').value = '';
             document.getElementById('chat-msg').value = '';
         }
 
-        // 6. UTILIDADES
+        // 7. UTILIDADES
         function showModal(id) { document.getElementById(id).style.display = 'flex'; }
         function hideModal(id) { document.getElementById(id).style.display = 'none'; }
         
@@ -375,12 +337,11 @@
             if (type === "error") toast.style.borderLeftColor = "#ef4444";
             toast.innerText = text;
             container.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
+            setTimeout(() => toast.remove(), 4000);
         }
 
-        // 7. INICIALIZACIÓN
+        // 8. INICIALIZACIÓN
         renderProducts();
-        updateCartUI();
     </script>
 </body>
 </html>
