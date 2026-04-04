@@ -7,14 +7,14 @@
     <style>
         /* --- ESTILOS CSS --- */
         :root {
-            --primary: #c1a067; /* Dorado cálido */
+            --primary: #c1a067;
             --primary-dark: #a88d57;
-            --accent: #d7b57b; /* Oro pulido */
-            --text: #3e270d; /* Marrón oscuro */
+            --accent: #d7b57b;
+            --text: #3e270d;
             --text-light: #6a4a2a;
-            --bg: #fffcf8; /* Crema suave */
+            --bg: #fffcf8;
             --white: #ffffff;
-            --green: #458500; /* Verde oliva sprig */
+            --green: #458500;
             --shadow: 0 4px 15px rgba(62, 39, 13, 0.1);
             --radius: 10px;
         }
@@ -22,14 +22,11 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
         body { background-color: var(--bg); color: var(--text); overflow-x: hidden; }
         button { cursor: pointer; border: none; transition: all 0.3s ease; border-radius: var(--radius); font-weight: 600; }
-        ul { list-style: none; }
-
-        /* --- NOTIFICACIONES --- */
+        
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast { background-color: var(--white); border-left: 4px solid var(--primary); padding: 1rem 1.5rem; box-shadow: var(--shadow); border-radius: 8px; animation: slideIn 0.3s ease forwards; font-size: 0.9rem; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        /* --- HEADER --- */
         header { background: var(--white); padding: 1.5rem 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); position: sticky; top: 0; z-index: 100; border-bottom: 2px solid #eee; }
         .logo { font-size: 2.5rem; font-weight: 800; color: var(--primary); letter-spacing: -1.5px; position: relative; }
         .logo::before, .logo::after { content: '🕯️'; position: absolute; font-size: 1.2rem; top: 10px; }
@@ -40,7 +37,6 @@
         .nav-btns { display: flex; gap: 1rem; align-items: center; }
         .btn-admin { background: none; font-size: 0.8rem; color: var(--text-light); }
 
-        /* --- TIENDA (PRODUCTOS) --- */
         .container { max-width: 1100px; margin: 3rem auto; padding: 0 20px; }
         .shop-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('https://i.postimg.cc/qM6V3m6C/Gemini-Generated-Image-6wjh266wjh266wjh.png'); background-size: cover; background-position: center; opacity: 0.05; z-index: -1; }
         
@@ -53,8 +49,8 @@
         .card-price { color: var(--primary-dark); font-weight: 800; font-size: 1.4rem; margin-bottom: 1.5rem; }
         .btn-add { width: 100%; background: var(--primary); color: white; padding: 0.9rem; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
         .btn-add:hover { background: var(--primary-dark); }
+        .btn-add:disabled { background: #ccc; cursor: not-allowed; }
 
-        /* --- MODALES --- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(4px); }
         .modal { background: var(--white); padding: 2.5rem; border-radius: var(--radius); width: 90%; max-width: 450px; position: relative; border: 2px solid #eee; }
         .input-group { margin-bottom: 1.2rem; }
@@ -62,24 +58,20 @@
         .input-group input, .input-group textarea { width: 100%; padding: 0.9rem; border: 1px solid #ddd; border-radius: 8px; outline: none; }
         .input-group input:focus, .input-group textarea:focus { border-color: var(--primary); }
 
-        /* Resumen de producto en checkout */
         .checkout-summary { background-color: var(--bg); padding: 15px; border-radius: 8px; border: 1px dashed var(--primary); margin-bottom: 20px; text-align: center; }
         .checkout-summary h4 { color: var(--primary-dark); font-size: 1.1rem; margin-bottom: 5px; }
         .checkout-summary p { font-size: 1.2rem; font-weight: bold; color: var(--text); }
 
-        /* --- PANEL ADMIN --- */
         #admin-panel { display: none; background: #fdfdfd; padding-top: 2rem; }
         .admin-section { background: var(--white); padding: 2rem; border-radius: var(--radius); margin-bottom: 2.5rem; box-shadow: var(--shadow); border: 1px solid #eee; }
-        .table-wrapper { overflow-x: auto; }
+        .table-wrapper { overflow-x: auto; max-height: 400px; }
         table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; font-size: 0.9rem; }
         th, td { text-align: left; padding: 15px; border-bottom: 1px solid #eee; }
-        th { background: #f8fafc; color: var(--text-light); font-weight: 700; }
+        th { background: #f8fafc; color: var(--text-light); font-weight: 700; position: sticky; top: 0; }
 
-        /* --- CHAT CLIENTE --- */
         #chat-btn { position: fixed; bottom: 25px; right: 25px; width: 65px; height: 65px; background: var(--primary); color: white; border-radius: 50%; font-size: 1.8rem; box-shadow: var(--shadow); z-index: 500; }
         #modal-chat .modal { max-width: 500px; }
 
-        /* --- RESPONSIVE --- */
         @media (max-width: 600px) { .logo { font-size: 2rem; } .logo::before, .logo::after { font-size: 1rem; top: 7px; } }
     </style>
 </head>
@@ -90,8 +82,8 @@
     <header>
         <div class="logo">🕯️ <span>Tienda</span> 🕯️<span class="logo-lavender">🌿</span></div>
         <div class="nav-btns">
-            <button onclick="showLogin()" id="btn-admin-view" class="btn-admin">Acceso</button>
-            <button onclick="logout()" id="btn-logout" style="display:none; background:#fee2e2; color:#ef4444; padding: 7px 20px;">Salir</button>
+            <button onclick="window.showLogin()" id="btn-admin-view" class="btn-admin">Acceso Admin</button>
+            <button onclick="window.logout()" id="btn-logout" style="display:none; background:#fee2e2; color:#ef4444; padding: 7px 20px;">Salir Panel</button>
         </div>
     </header>
 
@@ -104,20 +96,12 @@
     </div>
 
     <div id="admin-panel" class="container">
-        <h1>Panel de Administración</h1><br>
+        <h1 style="color: var(--primary-dark);">Panel de Administración (En Vivo 🔴)</h1><br>
         <div class="admin-section">
             <h2>Historial de Ventas Directas</h2>
             <div class="table-wrapper">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Cliente (Nombre Completo)</th>
-                            <th>Producto Comprado</th>
-                            <th>Total</th>
-                            <th>Fecha</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>ID Pedido</th><th>Cliente</th><th>Producto</th><th>Total</th><th>Fecha</th></tr></thead>
                     <tbody id="orders-table"></tbody>
                 </table>
             </div>
@@ -126,13 +110,7 @@
             <h2>Mensajes de Clientes</h2>
             <div class="table-wrapper">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Cliente</th>
-                            <th>Mensaje</th>
-                            <th>Fecha</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Cliente</th><th>Mensaje</th><th>Fecha</th></tr></thead>
                     <tbody id="messages-table"></tbody>
                 </table>
             </div>
@@ -144,45 +122,59 @@
             <h3>Acceso Administrador</h3><br>
             <div class="input-group"><label>Usuario</label><input type="text" id="admin-user"></div>
             <div class="input-group"><label>Contraseña</label><input type="password" id="admin-pass"></div>
-            <button class="btn-add" onclick="handleLogin()">Entrar</button>
-            <button onclick="hideModal('modal-login')" style="width:100%; margin-top:10px; background:none; color: var(--text-light);">Cancelar</button>
+            <button class="btn-add" onclick="window.handleLogin()">Entrar</button>
+            <button onclick="window.hideModal('modal-login')" style="width:100%; margin-top:10px; background:none; color: var(--text-light);">Cancelar</button>
         </div>
     </div>
 
     <div id="modal-checkout" class="modal-overlay">
         <div class="modal">
             <h3 style="text-align: center; color: var(--primary-dark); margin-bottom: 15px;">Confirmar Pedido</h3>
-            
             <div class="checkout-summary">
-                <h4 id="checkout-product-name">Nombre de la Vela</h4>
+                <h4 id="checkout-product-name">Vela</h4>
                 <p id="checkout-product-price">$0</p>
             </div>
-
             <p style="font-size: 0.95rem; margin-bottom: 15px; color: var(--text-light); text-align: center;">Introduce tu <b>nombre completo</b> para registrar tu pedido.</p>
-            
             <div class="input-group">
                 <input type="text" id="customer-name" placeholder="Ej. Juan Pérez García">
             </div>
-            
-            <button class="btn-add" onclick="confirmPurchase()">Confirmar Compra</button>
-            <button onclick="hideModal('modal-checkout')" style="width:100%; margin-top:10px; background:none; color: var(--text-light);">Cancelar y volver</button>
+            <button class="btn-add" id="btn-confirm-purchase" onclick="window.confirmPurchase()">Confirmar Compra</button>
+            <button onclick="window.hideModal('modal-checkout')" style="width:100%; margin-top:10px; background:none; color: var(--text-light);">Cancelar y volver</button>
         </div>
     </div>
 
-    <button id="chat-btn" onclick="showModal('modal-chat')">💬</button>
+    <button id="chat-btn" onclick="window.showModal('modal-chat')">💬</button>
     <div id="modal-chat" class="modal-overlay">
         <div class="modal">
             <h3>Enviar mensaje a la Tienda</h3><br>
             <div class="input-group"><label>Tu Nombre</label><input type="text" id="chat-name"></div>
             <div class="input-group"><label>Mensaje</label><textarea id="chat-msg" rows="5"></textarea></div>
-            <button class="btn-add" onclick="sendChatMessage()">Enviar Mensaje</button>
-            <button onclick="hideModal('modal-chat')" style="width:100%; margin-top:10px; background:none; color: var(--text-light);">Cerrar</button>
+            <button class="btn-add" id="btn-send-msg" onclick="window.sendChatMessage()">Enviar Mensaje</button>
+            <button onclick="window.hideModal('modal-chat')" style="width:100%; margin-top:10px; background:none; color: var(--text-light);">Cerrar</button>
         </div>
     </div>
 
-    <script>
-        /* --- JAVASCRIPT LOGIC --- */
-        // 1. DATA DE PRODUCTOS
+    <script type="module">
+        // Importamos Firebase 
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+        // CONFIGURACIÓN DE TU BASE DE DATOS
+        const firebaseConfig = {
+            apiKey: "AIzaSyBGe_DDk2ONE-BF5nVp6iDr8XRRbASV0kc",
+            authDomain: "teindatest.firebaseapp.com",
+            projectId: "teindatest",
+            storageBucket: "teindatest.firebasestorage.app",
+            messagingSenderId: "282446320333",
+            appId: "1:282446320333:web:d29a7546ad7340d0dd4f84",
+            measurementId: "G-ZBEHMSH5BT"
+        };
+
+        // Inicializar Firebase y Base de Datos (Firestore)
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- DATA DE PRODUCTOS ---
         const productos = [
             { id: 1, nombre: "Cirio Pascual Cordero", precio: 130, imagen: "https://i.postimg.cc/qM6V3m6C/Gemini-Generated-Image-6wjh266wjh266wjh.png" },
             { id: 2, nombre: "Cirio Pascual Celta", precio: 135, imagen: "https://i.postimg.cc/P5p3z3M5/Gemini-Generated-Image-ob4beaob4beaob4b.png" },
@@ -194,143 +186,166 @@
             { id: 8, nombre: "Cirio Pascual Económico P", precio: 50, imagen: "https://i.postimg.cc/P5LwR46M/Gemini-Generated-Image-8y93b8y93b8y93b.png" }
         ];
 
-        // 2. ESTADO DE LA APP
-        let orders = JSON.parse(localStorage.getItem('orders')) || [];
-        let messages = JSON.parse(localStorage.getItem('messages')) || [];
-        let productoSeleccionado = null; // Guarda el producto que se está comprando
+        let productoSeleccionado = null;
+        let unsubscribeOrders = null;
+        let unsubscribeMessages = null;
 
-        // 3. RENDERIZAR PRODUCTOS
-        function renderProducts() {
-            const grid = document.getElementById('products-grid');
-            grid.innerHTML = productos.map(p => `
-                <div class="card">
-                    <img src="${p.imagen}" alt="${p.nombre}">
-                    <div class="card-body">
-                        <div class="card-title">${p.nombre}</div>
-                        <div class="card-price">$${p.precio}</div>
-                        <button class="btn-add" onclick="iniciarCompra(${p.id})">quiero esta vela</button>
-                    </div>
+        // Renderizar Productos
+        const grid = document.getElementById('products-grid');
+        grid.innerHTML = productos.map(p => `
+            <div class="card">
+                <img src="${p.imagen}" alt="${p.nombre}">
+                <div class="card-body">
+                    <div class="card-title">${p.nombre}</div>
+                    <div class="card-price">$${p.precio}</div>
+                    <button class="btn-add" onclick="window.iniciarCompra(${p.id})">Quiero esta vela</button>
                 </div>
-            `).join('');
-        }
+            </div>
+        `).join('');
 
-        // 4. FUNCIONES DE COMPRA DIRECTA
-        function iniciarCompra(id) {
-            // Buscamos la información de la vela seleccionada
+        // --- FUNCIONES EXPUESTAS AL NAVEGADOR ---
+        
+        window.iniciarCompra = (id) => {
             productoSeleccionado = productos.find(p => p.id === id);
-            
-            // Actualizamos la ventana de confirmación con los datos de la vela
             document.getElementById('checkout-product-name').innerText = productoSeleccionado.nombre;
             document.getElementById('checkout-product-price').innerText = "$" + productoSeleccionado.precio;
-            
-            // Abrimos la ventana
-            showModal('modal-checkout');
-        }
+            window.showModal('modal-checkout');
+        };
 
-        function confirmPurchase() {
+        window.confirmPurchase = async () => {
             const nameInput = document.getElementById('customer-name').value.trim();
+            if (!nameInput) return window.notify("Por favor, introduce tu nombre", "error");
+
+            const btn = document.getElementById('btn-confirm-purchase');
+            btn.innerText = "Procesando..."; btn.disabled = true;
+
+            const orderId = 'ORD-' + Math.floor(Math.random() * 1000000);
             
-            if (!nameInput) return notify("Por favor, introduce tu nombre completo", "error");
+            try {
+                // GUARDAR EN FIREBASE (Colección "pedidos")
+                await addDoc(collection(db, "pedidos"), {
+                    id: orderId,
+                    cliente: nameInput,
+                    productos: productoSeleccionado.nombre,
+                    total: productoSeleccionado.precio,
+                    fecha: new Date().toLocaleString(),
+                    timestamp: Date.now()
+                });
 
-            // Creamos el registro del pedido
-            const order = {
-                id: 'ORD-' + Math.floor(Math.random() * 1000000),
-                cliente: nameInput,
-                productos: productoSeleccionado.nombre,
-                total: productoSeleccionado.precio,
-                fecha: new Date().toLocaleString()
-            };
+                window.notify("¡Gracias! Pedido registrado con éxito.");
+                window.hideModal('modal-checkout');
+                document.getElementById('customer-name').value = ''; 
+            } catch (error) {
+                console.error("Error al guardar: ", error);
+                window.notify("Hubo un error de conexión.", "error");
+            } finally {
+                btn.innerText = "Confirmar Compra"; btn.disabled = false;
+            }
+        };
 
-            // Guardamos en la "Base de Datos" (LocalStorage)
-            orders.push(order);
-            localStorage.setItem('orders', JSON.stringify(orders));
-            
-            // Mensaje de éxito
-            notify("¡Gracias por tu compra, " + nameInput + "! Tu pedido ha sido registrado.");
-            
-            // Limpiamos y cerramos
-            hideModal('modal-checkout');
-            document.getElementById('customer-name').value = ''; 
-            productoSeleccionado = null;
-        }
+        window.sendChatMessage = async () => {
+            const name = document.getElementById('chat-name').value.trim();
+            const msg = document.getElementById('chat-msg').value.trim();
+            if (!name || !msg) return window.notify("Completa todos los campos", "error");
 
-        // 5. FUNCIONES DEL PANEL ADMIN
-        function renderAdminData() {
-            const ordersTable = document.getElementById('orders-table');
-            const messagesTable = document.getElementById('messages-table');
+            const btn = document.getElementById('btn-send-msg');
+            btn.innerText = "Enviando..."; btn.disabled = true;
 
-            // Mostrar órdenes de la más nueva a la más vieja
-            ordersTable.innerHTML = [...orders].reverse().map(o => `
-                <tr>
-                    <td><strong>${o.id}</strong></td>
-                    <td>${o.cliente}</td>
-                    <td>${o.productos}</td>
-                    <td style="color:var(--primary-dark); font-weight:bold;">$${o.total}</td>
-                    <td><small>${o.fecha}</small></td>
-                </tr>
-            `).join('');
+            try {
+                // GUARDAR EN FIREBASE (Colección "mensajes")
+                await addDoc(collection(db, "mensajes"), {
+                    nombre: name,
+                    mensaje: msg,
+                    fecha: new Date().toLocaleString(),
+                    timestamp: Date.now()
+                });
+                window.notify("Mensaje enviado a la tienda");
+                window.hideModal('modal-chat');
+                document.getElementById('chat-name').value = '';
+                document.getElementById('chat-msg').value = '';
+            } catch (error) {
+                window.notify("Error de conexión", "error");
+            } finally {
+                btn.innerText = "Enviar Mensaje"; btn.disabled = false;
+            }
+        };
 
-            messagesTable.innerHTML = [...messages].reverse().map(m => `
-                <tr>
-                    <td><strong>${m.nombre}</strong></td>
-                    <td>${m.mensaje}</td>
-                    <td><small>${m.fecha}</small></td>
-                </tr>
-            `).join('');
-        }
-
-        function handleLogin() {
+        // --- SISTEMA ADMIN ---
+        window.handleLogin = () => {
             const user = document.getElementById('admin-user').value;
             const pass = document.getElementById('admin-pass').value;
+            
+            // Usuario y Contraseña para el Administrador
             if (user === 'admin' && pass === '1234') {
                 document.getElementById('modal-login').style.display = 'none';
                 document.getElementById('client-view').style.display = 'none';
                 document.getElementById('admin-panel').style.display = 'block';
                 document.getElementById('btn-admin-view').style.display = 'none';
                 document.getElementById('btn-logout').style.display = 'block';
-                renderAdminData();
-                notify("Sesión iniciada");
+                window.notify("Sesión iniciada");
+                
+                iniciarEscuchasEnTiempoReal();
             } else {
-                notify("Credenciales incorrectas", "error");
+                window.notify("Credenciales incorrectas", "error");
             }
-        }
+        };
 
-        function logout() {
+        window.logout = () => {
             document.getElementById('admin-panel').style.display = 'none';
             document.getElementById('client-view').style.display = 'block';
             document.getElementById('btn-admin-view').style.display = 'block';
             document.getElementById('btn-logout').style.display = 'none';
-            notify("Sesión cerrada");
-        }
-
-        function showLogin() { showModal('modal-login'); }
-
-        // 6. CHAT CLIENTE
-        function sendChatMessage() {
-            const name = document.getElementById('chat-name').value.trim();
-            const msg = document.getElementById('chat-msg').value.trim();
-            if (!name || !msg) return notify("Completa todos los campos", "error");
-
-            const message = {
-                nombre: name,
-                mensaje: msg,
-                fecha: new Date().toLocaleString()
-            };
-
-            messages.push(message);
-            localStorage.setItem('messages', JSON.stringify(messages));
-            notify("Mensaje enviado al vendedor");
+            window.notify("Sesión cerrada");
             
-            hideModal('modal-chat');
-            document.getElementById('chat-name').value = '';
-            document.getElementById('chat-msg').value = '';
+            if(unsubscribeOrders) unsubscribeOrders();
+            if(unsubscribeMessages) unsubscribeMessages();
+        };
+
+        function iniciarEscuchasEnTiempoReal() {
+            const ordersTable = document.getElementById('orders-table');
+            const messagesTable = document.getElementById('messages-table');
+            
+            // Query para Pedidos (ordenados por fecha)
+            const qPedidos = query(collection(db, "pedidos"), orderBy("timestamp", "desc"));
+            unsubscribeOrders = onSnapshot(qPedidos, (snapshot) => {
+                ordersTable.innerHTML = "";
+                snapshot.forEach((doc) => {
+                    const o = doc.data();
+                    ordersTable.innerHTML += `
+                        <tr>
+                            <td><strong>${o.id}</strong></td>
+                            <td>${o.cliente}</td>
+                            <td>${o.productos}</td>
+                            <td style="color:var(--primary-dark); font-weight:bold;">$${o.total}</td>
+                            <td><small>${o.fecha}</small></td>
+                        </tr>
+                    `;
+                });
+            });
+
+            // Query para Mensajes
+            const qMensajes = query(collection(db, "mensajes"), orderBy("timestamp", "desc"));
+            unsubscribeMessages = onSnapshot(qMensajes, (snapshot) => {
+                messagesTable.innerHTML = "";
+                snapshot.forEach((doc) => {
+                    const m = doc.data();
+                    messagesTable.innerHTML += `
+                        <tr>
+                            <td><strong>${m.nombre}</strong></td>
+                            <td>${m.mensaje}</td>
+                            <td><small>${m.fecha}</small></td>
+                        </tr>
+                    `;
+                });
+            });
         }
 
-        // 7. UTILIDADES
-        function showModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function hideModal(id) { document.getElementById(id).style.display = 'none'; }
+        // --- UTILIDADES ---
+        window.showModal = (id) => { document.getElementById(id).style.display = 'flex'; };
+        window.hideModal = (id) => { document.getElementById(id).style.display = 'none'; };
+        window.showLogin = () => { window.showModal('modal-login'); };
         
-        function notify(text, type = "success") {
+        window.notify = (text, type = "success") => {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = 'toast';
@@ -338,10 +353,7 @@
             toast.innerText = text;
             container.appendChild(toast);
             setTimeout(() => toast.remove(), 4000);
-        }
-
-        // 8. INICIALIZACIÓN
-        renderProducts();
+        };
     </script>
 </body>
 </html>
