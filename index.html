@@ -70,7 +70,6 @@
         th, td { text-align: left; padding: 12px 15px; border-bottom: 1px solid #eee; vertical-align: middle; }
         th { background: #f8fafc; color: var(--text-light); font-weight: 700; position: sticky; top: 0; z-index: 10; }
         
-        /* Botones de acción en la tabla admin */
         .btn-action { padding: 6px 12px; font-size: 0.8rem; border-radius: 5px; margin-right: 5px; margin-bottom: 5px; }
         .btn-deliver { background-color: var(--green); color: white; }
         .btn-deliver:hover { background-color: #366800; }
@@ -117,7 +116,7 @@
                     <thead>
                         <tr>
                             <th>Cliente</th>
-                            <th>Producto</th>
+                            <th>Producto (Cant.)</th>
                             <th>Total</th>
                             <th>Fecha</th>
                             <th>Estado</th>
@@ -161,15 +160,25 @@
     <div id="modal-checkout" class="modal-overlay">
         <div class="modal">
             <h3 style="text-align: center; color: var(--primary-dark); margin-bottom: 15px;">Confirmar Pedido</h3>
+            
             <div class="checkout-summary">
                 <h4 id="checkout-product-name">Vela</h4>
                 <p id="checkout-product-price">$0</p>
             </div>
-            <p style="font-size: 0.95rem; margin-bottom: 15px; color: var(--text-light); text-align: center;">Introduce tu <b>nombre completo</b> para registrar tu pedido.</p>
-            <div class="input-group">
-                <input type="text" id="customer-name" placeholder="Ej. Juan Pérez García">
+            
+            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                <div class="input-group" style="width: 30%; margin-bottom: 0;">
+                    <label style="text-align: center;">Cantidad</label>
+                    <input type="number" id="product-quantity" value="1" min="1" max="100" style="text-align: center; font-size: 1.1rem; font-weight: bold;" oninput="window.actualizarTotal()">
+                </div>
+                
+                <div class="input-group" style="width: 70%; margin-bottom: 0;">
+                    <label>Nombre Completo</label>
+                    <input type="text" id="customer-name" placeholder="Ej. Juan Pérez García">
+                </div>
             </div>
-            <button class="btn-add" id="btn-confirm-purchase" onclick="window.confirmPurchase()">Confirmar Compra</button>
+
+            <button class="btn-add" id="btn-confirm-purchase" onclick="window.confirmPurchase()" style="margin-top: 10px;">Confirmar Compra</button>
             <button onclick="window.hideModal('modal-checkout')" style="width:100%; margin-top:10px; background:none; color: var(--text-light);">Cancelar y volver</button>
         </div>
     </div>
@@ -189,7 +198,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-        // TU CONFIGURACIÓN DE FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyBGe_DDk2ONE-BF5nVp6iDr8XRRbASV0kc",
             authDomain: "teindatest.firebaseapp.com",
@@ -200,7 +208,6 @@
             measurementId: "G-ZBEHMSH5BT"
         };
 
-        // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
@@ -233,26 +240,40 @@
         // --- FUNCIONES DE LA TIENDA ---
         window.iniciarCompra = (id) => {
             productoSeleccionado = productos.find(p => p.id === id);
+            document.getElementById('product-quantity').value = 1; // Reiniciamos cantidad a 1
             document.getElementById('checkout-product-name').innerText = productoSeleccionado.nombre;
             document.getElementById('checkout-product-price').innerText = "$" + productoSeleccionado.precio;
             window.showModal('modal-checkout');
         };
 
+        // Función para actualizar el precio visualmente cuando cambian la cantidad
+        window.actualizarTotal = () => {
+            if(!productoSeleccionado) return;
+            let qty = parseInt(document.getElementById('product-quantity').value);
+            if(isNaN(qty) || qty < 1) qty = 1; // Evita números negativos o letras
+            document.getElementById('checkout-product-price').innerText = "$" + (productoSeleccionado.precio * qty);
+        };
+
         window.confirmPurchase = async () => {
             const nameInput = document.getElementById('customer-name').value.trim();
+            let qtyInput = parseInt(document.getElementById('product-quantity').value);
+            if(isNaN(qtyInput) || qtyInput < 1) qtyInput = 1; // Seguridad
+            
             if (!nameInput) return window.notify("Por favor, introduce tu nombre", "error");
 
             const btn = document.getElementById('btn-confirm-purchase');
             btn.innerText = "Procesando..."; btn.disabled = true;
 
             const orderId = 'ORD-' + Math.floor(Math.random() * 100000);
+            const totalCalculado = productoSeleccionado.precio * qtyInput;
+            const nombreConCantidad = `${qtyInput}x ${productoSeleccionado.nombre}`;
             
             try {
                 await addDoc(collection(db, "pedidos"), {
                     id: orderId,
                     cliente: nameInput,
-                    productos: productoSeleccionado.nombre,
-                    total: productoSeleccionado.precio,
+                    productos: nombreConCantidad, // Aquí se guarda "2x Cirio..."
+                    total: totalCalculado,        // Aquí se guarda el precio ya multiplicado
                     fecha: new Date().toLocaleString(),
                     timestamp: Date.now(),
                     entregado: false
@@ -261,6 +282,7 @@
                 window.notify("¡Gracias! Pedido registrado con éxito.");
                 window.hideModal('modal-checkout');
                 document.getElementById('customer-name').value = ''; 
+                document.getElementById('product-quantity').value = 1;
             } catch (error) {
                 console.error("Error al guardar: ", error);
                 window.notify("Hubo un error de conexión.", "error");
@@ -283,7 +305,7 @@
                     mensaje: msg,
                     fecha: new Date().toLocaleString(),
                     timestamp: Date.now(),
-                    enterado: false // NUEVO: Estado del mensaje
+                    enterado: false
                 });
                 window.notify("Mensaje enviado a la tienda");
                 window.hideModal('modal-chat');
@@ -328,7 +350,6 @@
 
         // --- FUNCIONES PARA LOS BOTONES DEL ADMIN ---
         
-        // PEDIDOS: Cambiar estado y Borrar
         window.toggleEntregado = async (docId, estadoActual) => {
             try {
                 await updateDoc(doc(db, "pedidos", docId), { entregado: !estadoActual });
@@ -339,7 +360,7 @@
         };
 
         window.borrarPedido = async (docId) => {
-            if (confirm("¿Estás completamente seguro de que quieres borrar este pedido? Esta acción no se puede deshacer.")) {
+            if (confirm("¿Estás completamente seguro de que quieres borrar este pedido?")) {
                 try {
                     await deleteDoc(doc(db, "pedidos", docId));
                     window.notify("Pedido borrado correctamente");
@@ -349,7 +370,6 @@
             }
         };
 
-        // MENSAJES: Cambiar estado y Borrar
         window.toggleMensajeEnterado = async (docId, estadoActual) => {
             try {
                 await updateDoc(doc(db, "mensajes", docId), { enterado: !estadoActual });
@@ -375,7 +395,6 @@
             const ordersTable = document.getElementById('orders-table');
             const messagesTable = document.getElementById('messages-table');
             
-            // Escucha de Pedidos
             const qPedidos = query(collection(db, "pedidos"), orderBy("timestamp", "desc"));
             unsubscribeOrders = onSnapshot(qPedidos, (snapshot) => {
                 ordersTable.innerHTML = "";
@@ -408,7 +427,6 @@
                 });
             });
 
-            // Escucha de Mensajes
             const qMensajes = query(collection(db, "mensajes"), orderBy("timestamp", "desc"));
             unsubscribeMessages = onSnapshot(qMensajes, (snapshot) => {
                 messagesTable.innerHTML = "";
