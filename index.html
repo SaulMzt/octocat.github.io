@@ -12,7 +12,7 @@
             --accent: #d7b57b;
             --text: #3e270d;
             --text-light: #6a4a2a;
-            --bg: #fffcf8;
+            --bg: #ffffff; /* FONDO BLANCO PURO */
             --white: #ffffff;
             --green: #458500;
             --danger: #dc2626;
@@ -39,7 +39,6 @@
         .btn-admin { background: none; font-size: 0.8rem; color: var(--text-light); }
 
         .container { max-width: 1100px; margin: 3rem auto; padding: 0 20px; }
-        .shop-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('https://i.postimg.cc/qM6V3m6C/Gemini-Generated-Image-6wjh266wjh266wjh.png'); background-size: cover; background-position: center; opacity: 0.05; z-index: -1; }
         
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2.5rem; margin-top: 2rem; }
         .card { background: var(--white); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); transition: transform 0.3s; border: 1px solid #eee; }
@@ -59,12 +58,12 @@
         .input-group input, .input-group textarea { width: 100%; padding: 0.9rem; border: 1px solid #ddd; border-radius: 8px; outline: none; }
         .input-group input:focus, .input-group textarea:focus { border-color: var(--primary); }
 
-        .checkout-summary { background-color: var(--bg); padding: 15px; border-radius: 8px; border: 1px dashed var(--primary); margin-bottom: 20px; text-align: center; }
+        .checkout-summary { background-color: #fdfdfd; padding: 15px; border-radius: 8px; border: 1px dashed var(--primary); margin-bottom: 20px; text-align: center; }
         .checkout-summary h4 { color: var(--primary-dark); font-size: 1.1rem; margin-bottom: 5px; }
         .checkout-summary p { font-size: 1.2rem; font-weight: bold; color: var(--text); }
 
         /* --- PANEL ADMIN Y TABLAS --- */
-        #admin-panel { display: none; background: #fdfdfd; padding-top: 2rem; }
+        #admin-panel { display: none; background: #ffffff; padding-top: 2rem; }
         .admin-section { background: var(--white); padding: 2rem; border-radius: var(--radius); margin-bottom: 2.5rem; box-shadow: var(--shadow); border: 1px solid #eee; }
         .table-wrapper { overflow-x: auto; max-height: 500px; }
         table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; font-size: 0.9rem; min-width: 700px; }
@@ -90,7 +89,6 @@
     </style>
 </head>
 <body>
-    <div class="shop-bg"></div>
     <div id="toast-container"></div>
 
     <header>
@@ -111,6 +109,7 @@
 
     <div id="admin-panel" class="container">
         <h1 style="color: var(--primary-dark);">Panel de Administración (En Vivo 🔴)</h1><br>
+        
         <div class="admin-section">
             <h2>Historial de Ventas Directas</h2>
             <div class="table-wrapper">
@@ -129,11 +128,20 @@
                 </table>
             </div>
         </div>
+        
         <div class="admin-section">
             <h2>Mensajes de Clientes</h2>
             <div class="table-wrapper">
                 <table>
-                    <thead><tr><th>Cliente</th><th>Mensaje</th><th>Fecha</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Mensaje</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
                     <tbody id="messages-table"></tbody>
                 </table>
             </div>
@@ -178,7 +186,6 @@
     </div>
 
     <script type="module">
-        // Importamos Firebase (Agregamos doc, updateDoc y deleteDoc para editar y borrar)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
@@ -193,7 +200,7 @@
             measurementId: "G-ZBEHMSH5BT"
         };
 
-        // Inicializar Firebase y Base de Datos
+        // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
@@ -241,7 +248,6 @@
             const orderId = 'ORD-' + Math.floor(Math.random() * 100000);
             
             try {
-                // Guardar pedido agregando el campo "entregado: false" por defecto
                 await addDoc(collection(db, "pedidos"), {
                     id: orderId,
                     cliente: nameInput,
@@ -249,7 +255,7 @@
                     total: productoSeleccionado.precio,
                     fecha: new Date().toLocaleString(),
                     timestamp: Date.now(),
-                    entregado: false // NUEVO: Para saber si ya se entregó
+                    entregado: false
                 });
 
                 window.notify("¡Gracias! Pedido registrado con éxito.");
@@ -276,7 +282,8 @@
                     nombre: name,
                     mensaje: msg,
                     fecha: new Date().toLocaleString(),
-                    timestamp: Date.now()
+                    timestamp: Date.now(),
+                    enterado: false // NUEVO: Estado del mensaje
                 });
                 window.notify("Mensaje enviado a la tienda");
                 window.hideModal('modal-chat');
@@ -319,36 +326,51 @@
             if(unsubscribeMessages) unsubscribeMessages();
         };
 
-        // --- NUEVAS FUNCIONES PARA LOS BOTONES DEL ADMIN ---
+        // --- FUNCIONES PARA LOS BOTONES DEL ADMIN ---
         
-        // 1. Cambiar estado a Entregado o Pendiente
+        // PEDIDOS: Cambiar estado y Borrar
         window.toggleEntregado = async (docId, estadoActual) => {
             try {
-                const pedidoRef = doc(db, "pedidos", docId);
-                await updateDoc(pedidoRef, {
-                    entregado: !estadoActual // Invierte el estado (si era true pasa a false y viceversa)
-                });
+                await updateDoc(doc(db, "pedidos", docId), { entregado: !estadoActual });
                 window.notify(estadoActual ? "Marcado como pendiente" : "Marcado como entregado");
             } catch (error) {
-                console.error("Error actualizando: ", error);
                 window.notify("Error al actualizar estado", "error");
             }
         };
 
-        // 2. Borrar pedido definitivamente
         window.borrarPedido = async (docId) => {
-            // Pedimos confirmación para evitar borrados accidentales
             if (confirm("¿Estás completamente seguro de que quieres borrar este pedido? Esta acción no se puede deshacer.")) {
                 try {
                     await deleteDoc(doc(db, "pedidos", docId));
                     window.notify("Pedido borrado correctamente");
                 } catch (error) {
-                    console.error("Error borrando: ", error);
                     window.notify("Error al borrar el pedido", "error");
                 }
             }
         };
 
+        // MENSAJES: Cambiar estado y Borrar
+        window.toggleMensajeEnterado = async (docId, estadoActual) => {
+            try {
+                await updateDoc(doc(db, "mensajes", docId), { enterado: !estadoActual });
+                window.notify(estadoActual ? "Marcado como no leído" : "Marcado como enterado");
+            } catch (error) {
+                window.notify("Error al actualizar mensaje", "error");
+            }
+        };
+
+        window.borrarMensaje = async (docId) => {
+            if (confirm("¿Seguro que quieres borrar este mensaje?")) {
+                try {
+                    await deleteDoc(doc(db, "mensajes", docId));
+                    window.notify("Mensaje borrado correctamente");
+                } catch (error) {
+                    window.notify("Error al borrar el mensaje", "error");
+                }
+            }
+        };
+
+        // ESCUCHAS EN TIEMPO REAL
         function iniciarEscuchasEnTiempoReal() {
             const ordersTable = document.getElementById('orders-table');
             const messagesTable = document.getElementById('messages-table');
@@ -359,9 +381,7 @@
                 ordersTable.innerHTML = "";
                 snapshot.forEach((documento) => {
                     const o = documento.data();
-                    const docId = documento.id; // Obtenemos el ID único generado por Firebase
-                    
-                    // Verificamos si existe el campo "entregado" (para pedidos viejos que no lo tenían)
+                    const docId = documento.id; 
                     const estaEntregado = o.entregado || false; 
                     
                     const badgeHtml = estaEntregado 
@@ -374,10 +394,7 @@
 
                     ordersTable.innerHTML += `
                         <tr style="${estaEntregado ? 'opacity: 0.6; background-color: #f8fafc;' : ''}">
-                            <td>
-                                <strong>${o.cliente}</strong><br>
-                                <small style="color:#94a3b8">${o.id}</small>
-                            </td>
+                            <td><strong>${o.cliente}</strong><br><small style="color:#94a3b8">${o.id}</small></td>
                             <td>${o.productos}</td>
                             <td style="color:var(--primary-dark); font-weight:bold;">$${o.total}</td>
                             <td><small>${o.fecha}</small></td>
@@ -395,13 +412,29 @@
             const qMensajes = query(collection(db, "mensajes"), orderBy("timestamp", "desc"));
             unsubscribeMessages = onSnapshot(qMensajes, (snapshot) => {
                 messagesTable.innerHTML = "";
-                snapshot.forEach((doc) => {
-                    const m = doc.data();
+                snapshot.forEach((documento) => {
+                    const m = documento.data();
+                    const docId = documento.id;
+                    const estaEnterado = m.enterado || false;
+
+                    const badgeHtml = estaEnterado 
+                        ? '<span class="status-badge status-delivered">Enterado</span>' 
+                        : '<span class="status-badge status-pending">Nuevo</span>';
+                    
+                    const botonEnteradoHtml = estaEnterado
+                        ? `<button class="btn-action btn-deliver outline" onclick="window.toggleMensajeEnterado('${docId}', true)">Revertir</button>`
+                        : `<button class="btn-action btn-deliver" onclick="window.toggleMensajeEnterado('${docId}', false)">✓ Enterado</button>`;
+
                     messagesTable.innerHTML += `
-                        <tr>
+                        <tr style="${estaEnterado ? 'opacity: 0.6; background-color: #f8fafc;' : ''}">
                             <td><strong>${m.nombre}</strong></td>
                             <td>${m.mensaje}</td>
                             <td><small>${m.fecha}</small></td>
+                            <td>${badgeHtml}</td>
+                            <td>
+                                ${botonEnteradoHtml}
+                                <button class="btn-action btn-delete" onclick="window.borrarMensaje('${docId}')">🗑️ Borrar</button>
+                            </td>
                         </tr>
                     `;
                 });
