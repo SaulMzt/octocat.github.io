@@ -1,10 +1,4 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import {
-  addDoc,
-  collection,
-  getFirestore,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 import { firebaseConfig, QUESTIONS_COLLECTION } from "./firebase-config.js";
 
 const form = document.querySelector("#questionForm");
@@ -15,7 +9,7 @@ const questionText = document.querySelector("#questionText");
 const submitButton = document.querySelector("#submitButton");
 const statusMessage = document.querySelector("#statusMessage");
 
-let db;
+let firebaseReady = false;
 
 function hasFirebaseConfig() {
   return firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith("TU_");
@@ -26,19 +20,6 @@ function setStatus(message, tone = "success") {
   statusMessage.dataset.tone = tone;
 }
 
-function withTimeout(promise, milliseconds = 12000) {
-  let timeoutId;
-  const timeout = new Promise((_, reject) => {
-    timeoutId = window.setTimeout(() => {
-      reject(new Error("timeout"));
-    }, milliseconds);
-  });
-
-  return Promise.race([promise, timeout]).finally(() => {
-    window.clearTimeout(timeoutId);
-  });
-}
-
 function initFirebase() {
   if (!hasFirebaseConfig()) {
     setStatus("Configura Firebase para activar el envío en tiempo real.", "error");
@@ -46,8 +27,39 @@ function initFirebase() {
     return;
   }
 
-  const app = initializeApp(firebaseConfig);
-  db = getFirestore(app);
+  initializeApp(firebaseConfig);
+  firebaseReady = true;
+}
+
+async function saveQuestion({ name, question }) {
+  const endpoint = `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents/${QUESTIONS_COLLECTION}?key=${firebaseConfig.apiKey}`;
+  const sentAt = new Date().toISOString();
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      fields: {
+        name: { stringValue: name || "Anónimo" },
+        question: { stringValue: question },
+        answered: { booleanValue: false },
+        createdAt: { timestampValue: sentAt },
+        localCreatedAt: { stringValue: sentAt }
+      }
+    })
+  });
+
+  if (!response.ok) {
+    const details = await response.json().catch(() => ({}));
+    const firebaseMessage = details?.error?.message || "No se pudo guardar en Firestore.";
+    const reason = details?.error?.details?.[0]?.reason;
+    if (reason === "SERVICE_DISABLED") {
+      throw new Error("Activa Cloud Firestore API y crea la base de datos Firestore en Firebase.");
+    }
+    throw new Error(firebaseMessage);
+  }
 }
 
 identityMode.addEventListener("change", () => {
@@ -62,7 +74,7 @@ identityMode.addEventListener("change", () => {
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  if (!db) {
+  if (!firebaseReady) {
     setStatus("Configura Firebase para activar el envío en tiempo real.", "error");
     return;
   }
@@ -86,24 +98,14 @@ form.addEventListener("submit", async (event) => {
   submitButton.textContent = "Enviando...";
 
   try {
-    await withTimeout(addDoc(collection(db, QUESTIONS_COLLECTION), {
-      name: name || "Anónimo",
-      question,
-      answered: false,
-      createdAt: serverTimestamp(),
-      localCreatedAt: new Date().toISOString()
-    }));
-
+    await saveQuestion({ name, question });
     form.reset();
     nameGroup.classList.add("is-hidden");
     participantName.required = false;
     setStatus("Gracias por compartirnos tu pregunta");
   } catch (error) {
     console.error(error);
-    const message = error.message === "timeout"
-      ? "Firebase tardó demasiado en responder. Revisa la configuración y las reglas de Firestore."
-      : "No pudimos enviar la pregunta. Revisa Firebase e inténtalo de nuevo.";
-    setStatus(message, "error");
+    setStatus(`No pudimos enviar la pregunta: ${error.message}`, "error");
   } finally {
     submitButton.disabled = false;
     submitButton.textContent = "Enviar pregunta";
