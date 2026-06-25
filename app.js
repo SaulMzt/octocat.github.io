@@ -8,6 +8,7 @@ const participantName = document.querySelector("#participantName");
 const questionText = document.querySelector("#questionText");
 const submitButton = document.querySelector("#submitButton");
 const statusMessage = document.querySelector("#statusMessage");
+const submitButtonLabel = submitButton.querySelector("span");
 
 let firebaseReady = false;
 
@@ -95,7 +96,7 @@ form.addEventListener("submit", async (event) => {
   }
 
   submitButton.disabled = true;
-  submitButton.textContent = "Enviando...";
+  submitButtonLabel.textContent = "Enviando...";
 
   try {
     await saveQuestion({ name, question });
@@ -108,7 +109,7 @@ form.addEventListener("submit", async (event) => {
     setStatus(`No pudimos enviar la pregunta: ${error.message}`, "error");
   } finally {
     submitButton.disabled = false;
-    submitButton.textContent = "Enviar pregunta";
+    submitButtonLabel.textContent = "Enviar pregunta";
   }
 });
 

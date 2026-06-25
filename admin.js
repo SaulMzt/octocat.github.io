@@ -34,6 +34,8 @@ let db;
 let questions = [];
 let unsubscribe = null;
 let firebaseReady = false;
+let selectedWinnerId = null;
+let rouletteAudio = null;
 
 function hasFirebaseConfig() {
   return firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith("TU_");
@@ -157,6 +159,51 @@ async function removeQuestion(id) {
   await deleteDoc(doc(db, QUESTIONS_COLLECTION, id));
 }
 
+function startRouletteSound() {
+  if (rouletteAudio) {
+    rouletteAudio.stop();
+  }
+
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) return null;
+
+  const context = new AudioContext();
+  context.resume();
+  const masterGain = context.createGain();
+  masterGain.gain.value = 0.04;
+  masterGain.connect(context.destination);
+
+  let step = 0;
+  const playTick = () => {
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = "triangle";
+    oscillator.frequency.value = 420 + (step % 8) * 34;
+    gain.gain.setValueAtTime(0.001, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.45, context.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.075);
+    oscillator.connect(gain);
+    gain.connect(masterGain);
+    oscillator.start();
+    oscillator.stop(context.currentTime + 0.085);
+    step += 1;
+  };
+
+  playTick();
+  const timer = window.setInterval(playTick, 95);
+
+  rouletteAudio = {
+    stop() {
+      window.clearInterval(timer);
+      masterGain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.08);
+      window.setTimeout(() => context.close(), 140);
+      rouletteAudio = null;
+    }
+  };
+
+  return rouletteAudio;
+}
+
 async function resetSession() {
   if (!confirm("¿Reiniciar la sesión y eliminar todas las preguntas?")) return;
 
@@ -172,8 +219,11 @@ function pickWinner() {
 
   if (!pool.length) return;
 
+  selectedWinnerId = null;
   diceButton.disabled = true;
   diceCube.classList.add("is-rolling");
+  diceButton.classList.add("is-rolling");
+  const sound = startRouletteSound();
 
   const shuffleTimer = window.setInterval(() => {
     const preview = pool[Math.floor(Math.random() * pool.length)];
@@ -185,12 +235,15 @@ function pickWinner() {
 
   window.setTimeout(() => {
     window.clearInterval(shuffleTimer);
+    if (sound) sound.stop();
     const winner = pool[Math.floor(Math.random() * pool.length)];
+    selectedWinnerId = winner.id;
     winnerQuestion.textContent = winner.question;
     winnerMeta.textContent = `${winner.name || "Anónimo"} • ${formatTime(winner.createdAt, winner.localCreatedAt)}`;
     winnerOverlay.classList.remove("is-drawing");
     winnerOverlay.classList.add("is-winner");
     diceCube.classList.remove("is-rolling");
+    diceButton.classList.remove("is-rolling");
     diceButton.disabled = false;
   }, 2200);
 }
@@ -219,9 +272,21 @@ loginForm.addEventListener("submit", async (event) => {
 
 diceButton.addEventListener("click", pickWinner);
 resetButton.addEventListener("click", resetSession);
-closeWinner.addEventListener("click", () => {
-  winnerOverlay.classList.add("is-hidden");
-  winnerOverlay.classList.remove("is-winner", "is-drawing");
+closeWinner.addEventListener("click", async () => {
+  closeWinner.disabled = true;
+  try {
+    if (selectedWinnerId) {
+      await removeQuestion(selectedWinnerId);
+      selectedWinnerId = null;
+    }
+    winnerOverlay.classList.add("is-hidden");
+    winnerOverlay.classList.remove("is-winner", "is-drawing");
+  } catch (error) {
+    console.error(error);
+    winnerMeta.textContent = "No se pudo eliminar la pregunta. Intenta cerrar otra vez.";
+  } finally {
+    closeWinner.disabled = false;
+  }
 });
 
 window.addEventListener("beforeunload", () => {
