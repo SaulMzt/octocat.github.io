@@ -26,6 +26,19 @@ function setStatus(message, tone = "success") {
   statusMessage.dataset.tone = tone;
 }
 
+function withTimeout(promise, milliseconds = 12000) {
+  let timeoutId;
+  const timeout = new Promise((_, reject) => {
+    timeoutId = window.setTimeout(() => {
+      reject(new Error("timeout"));
+    }, milliseconds);
+  });
+
+  return Promise.race([promise, timeout]).finally(() => {
+    window.clearTimeout(timeoutId);
+  });
+}
+
 function initFirebase() {
   if (!hasFirebaseConfig()) {
     setStatus("Configura Firebase para activar el envío en tiempo real.", "error");
@@ -73,13 +86,13 @@ form.addEventListener("submit", async (event) => {
   submitButton.textContent = "Enviando...";
 
   try {
-    await addDoc(collection(db, QUESTIONS_COLLECTION), {
+    await withTimeout(addDoc(collection(db, QUESTIONS_COLLECTION), {
       name: name || "Anónimo",
       question,
       answered: false,
       createdAt: serverTimestamp(),
       localCreatedAt: new Date().toISOString()
-    });
+    }));
 
     form.reset();
     nameGroup.classList.add("is-hidden");
@@ -87,7 +100,10 @@ form.addEventListener("submit", async (event) => {
     setStatus("Gracias por compartirnos tu pregunta");
   } catch (error) {
     console.error(error);
-    setStatus("No pudimos enviar la pregunta. Inténtalo de nuevo.", "error");
+    const message = error.message === "timeout"
+      ? "Firebase tardó demasiado en responder. Revisa la configuración y las reglas de Firestore."
+      : "No pudimos enviar la pregunta. Revisa Firebase e inténtalo de nuevo.";
+    setStatus(message, "error");
   } finally {
     submitButton.disabled = false;
     submitButton.textContent = "Enviar pregunta";

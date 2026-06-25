@@ -24,6 +24,14 @@ En el código se guarda como hash SHA-256 en `firebase-config.js` para que no ap
 
 La colección usada por defecto es `training_questions`. Puedes cambiarla en `firebase-config.js`.
 
+El archivo específico que debes actualizar con tus credenciales reales es:
+
+```txt
+firebase-config.js
+```
+
+Mientras ese archivo tenga valores como `TU_API_KEY` o `TU_PROYECTO`, el formulario no podrá enviar preguntas a Firestore.
+
 ## Publicar en GitHub Pages
 
 1. Sube este proyecto a un repositorio de GitHub.

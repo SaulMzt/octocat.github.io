@@ -137,6 +137,13 @@ function listenForQuestions() {
       ...entry.data()
     }));
     renderQuestions();
+  }, (error) => {
+    console.error(error);
+    rainBoard.innerHTML = "";
+    const emptyState = document.createElement("div");
+    emptyState.className = "empty-state";
+    emptyState.textContent = "No se pudo conectar con Firestore. Revisa la configuración y las reglas.";
+    rainBoard.append(emptyState);
   });
 }
 
