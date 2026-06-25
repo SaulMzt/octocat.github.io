@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Administrador | Preguntas en vivo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="admin-page">
+    <main id="loginView" class="login-shell">
+      <section class="login-panel" aria-labelledby="login-title">
+        <p class="eyebrow">Panel de moderación</p>
+        <h1 id="login-title">Acceso administrador</h1>
+        <form id="loginForm" class="question-form">
+          <label class="field-label" for="adminPassword">Contraseña</label>
+          <input id="adminPassword" type="password" autocomplete="current-password" placeholder="Contraseña" required />
+          <button class="primary-button" type="submit">Entrar</button>
+          <p id="loginMessage" class="status-message" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+
+    <main id="adminView" class="admin-shell is-hidden">
+      <header class="admin-header">
+        <div>
+          <p class="eyebrow">Preguntas en vivo</p>
+          <h1>Lluvia de preguntas</h1>
+        </div>
+        <div class="admin-actions">
+          <button id="resetButton" class="ghost-button danger" type="button">Reiniciar sesión</button>
+        </div>
+      </header>
+
+      <section class="stats-row" aria-label="Resumen">
+        <article class="stat-tile">
+          <span id="totalCount">0</span>
+          <p>Recibidas</p>
+        </article>
+        <article class="stat-tile">
+          <span id="pendingCount">0</span>
+          <p>Pendientes</p>
+        </article>
+        <article class="stat-tile">
+          <span id="answeredCount">0</span>
+          <p>Respondidas</p>
+        </article>
+      </section>
+
+      <section id="rainBoard" class="rain-board" aria-live="polite"></section>
+
+      <button id="diceButton" class="dice-button" type="button" aria-label="Sortear pregunta">
+        <span id="diceCube" class="dice-cube" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+      </button>
+    </main>
+
+    <section id="winnerOverlay" class="winner-overlay is-hidden" aria-live="assertive">
+      <div class="winner-card">
+        <p class="eyebrow">Pregunta seleccionada</p>
+        <h2 id="winnerQuestion"></h2>
+        <p id="winnerMeta"></p>
+        <button id="closeWinner" class="primary-button" type="button">Cerrar</button>
+      </div>
+    </section>
+
+    <script type="module" src="admin.js"></script>
+  </body>
+</html>
