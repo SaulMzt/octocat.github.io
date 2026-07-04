@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Déjanos tu pregunta</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="participant-page">
+    <main class="participant-shell">
+      <section class="ask-panel" aria-labelledby="page-title">
+        <div class="brand-mark" aria-hidden="true">
+          <span></span>
+        </div>
+        <p class="eyebrow">Capacitación en vivo</p>
+        <h1 id="page-title">Déjanos tu pregunta</h1>
+        <div class="tabs-container">
+          <button id="tabQuestion" class="tab-btn is-active" type="button">Preguntar algo</button>
+          <button id="tabQuiz" class="tab-btn" type="button">Quizz</button>
+        </div>
+
+        <form id="questionForm" class="question-form">
+          <input type="hidden" id="currentMode" value="question">
+
+          <div id="identityWrapper">
+            <label class="field-label" for="identityMode">Participación</label>
+            <div class="select-wrap">
+              <select id="identityMode" name="identityMode">
+                <option value="anonymous">Anónimo</option>
+                <option value="named">Mostrar mi nombre</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="nameGroup" class="form-group is-hidden">
+            <label class="field-label" for="participantName">Nombre</label>
+            <input id="participantName" name="participantName" type="text" autocomplete="name" maxlength="80" placeholder="Tu nombre (Obligatorio en Quizz)" />
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" id="textLabel" for="questionText">Pregunta</label>
+            <textarea id="questionText" name="questionText" rows="6" maxlength="500" required placeholder="Escribe aquí tu pregunta"></textarea>
+          </div>
+
+          <button id="submitButton" class="send-button" type="submit">
+            <div class="svg-wrapper" aria-hidden="true">
+              <svg height="24" width="24" viewBox="0 0 24 24">
+                <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" fill="currentColor"></path>
+              </svg>
+            </div>
+            <span id="submitLabel">Enviar pregunta</span>
+          </button>
+        </form>
+        <div id="quizSuccessBlock" class="is-hidden" style="text-align: center; margin-top: 20px;">
+          <p class="field-label" style="font-size: 1.1rem; line-height: 1.5; margin-bottom: 24px; color: #f8fafc; font-weight: 600;">
+            Gracias por enviar tu respuesta en la pantalla grande se mostraran los resultados
+          </p>
+          <button id="nextChallengeBtn" class="primary-button" type="button" style="min-height: 54px; width: 100%;">Siguiente reto</button>
+        </div>
+        <p id="statusMessage" class="status-message" role="status" aria-live="polite"></p>
+      </section>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
