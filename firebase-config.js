@@ -8,5 +8,5 @@ export const firebaseConfig = {
   measurementId: "G-6YJP4EL21B"
 };
 
-export const ADMIN_PASSWORD_HASH = "3e12f88289504ab499f86425937a20a0a94a7c61a85dff6e2ef87bbbb0a2b9b6";
+export const ADMIN_PASSWORD_HASH = "b3e25519383e6e851c5b1d308b28c46d4d6c1ca6d33cf04b24d3e7f9152d3bfd";
 export const QUESTIONS_COLLECTION = "training_questions";

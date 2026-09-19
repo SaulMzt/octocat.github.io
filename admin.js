@@ -1,4 +1,4 @@
-import { ADMIN_PASSWORD_HASH } from "./firebase-config.js";
+import { ADMIN_PASSWORD_HASH } from "./firebase-config.js?v=20260919-5";
 import {
   addEntries, addEntry, addQuestion, addQuestions, createRound, finishQuestionSpin,
   finishSpin, getRound, hashText, isRoundAdmin, removeEntry, removeQuestion,
