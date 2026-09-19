@@ -41,7 +41,18 @@ export const updateRound = (code, changes) => updateDoc(doc(db, "rounds", code),
 export async function startSpin(round, entries) { const available = entries.filter((entry) => entry.enabled); if (available.length < 2) throw new Error("Agrega al menos dos opciones activas para girar."); const index = Math.floor(Math.random() * available.length); const winner = available[index]; const spinNumber = (round.spinCount || 0) + 1; const spin = { winnerId: winner.id, winnerName: winner.name, targetIndex: index, total: available.length, startedAt: Timestamp.now(), durationMs: round.durationMs || 7000, spinNumber }; await updateRound(round.code, { status: "SPINNING", spin, winner: null, spinCount: spinNumber }); return spin; }
 export async function finishSpin(round) { const spin = round.spin; if (!spin) return; const batch = writeBatch(db); batch.set(doc(collection(db, "rounds", round.code, "history")), { winnerId: spin.winnerId, winnerName: spin.winnerName, spinNumber: spin.spinNumber, createdAt: serverTimestamp() }); if (round.removeWinner) batch.update(doc(db, "rounds", round.code, "entries", spin.winnerId), { enabled: false }); batch.update(doc(db, "rounds", round.code), { status: "FINISHED", winner: { ...spin, finishedAt: Timestamp.now() }, questionStatus: round.questionMode ? "WAITING" : null, questionSpin: null, questionWinner: null, updatedAt: serverTimestamp() }); await batch.commit(); }
 export async function startQuestionSpin(round, questions) { const available = questions.filter((question) => question.enabled); if (available.length < 2) throw new Error("Agrega al menos dos preguntas activas."); const index = Math.floor(Math.random() * available.length); const question = available[index]; const roundRef = doc(db, "rounds", round.code); let questionSpin; await runTransaction(db, async (transaction) => { const snapshot = await transaction.get(roundRef); const liveRound = snapshot.data(); if (!liveRound?.questionMode || liveRound.questionStatus !== "WAITING" || !liveRound.winner) throw new Error("La ruleta de preguntas ya fue iniciada o no está disponible."); const spinNumber = (liveRound.questionSpinCount || 0) + 1; questionSpin = { winnerId: question.id, winnerName: question.name, targetIndex: index, total: available.length, startedAt: Timestamp.now(), durationMs: liveRound.durationMs || 7000, spinNumber }; transaction.update(roundRef, { questionStatus: "SPINNING", questionSpin, questionWinner: null, questionSpinCount: spinNumber, updatedAt: serverTimestamp() }); }); return questionSpin; }
-export async function finishQuestionSpin(round) { const questionSpin = round.questionSpin; if (!questionSpin) return; await updateRound(round.code, { questionStatus: "FINISHED", questionWinner: { ...questionSpin, finishedAt: Timestamp.now() } }); }
+export async function finishQuestionSpin(round) {
+  const questionSpin = round.questionSpin;
+  if (!questionSpin) return;
+  const batch = writeBatch(db);
+  if (round.removeWinner) batch.update(doc(db, "rounds", round.code, "entries", questionSpin.winnerId), { enabled: false });
+  batch.update(doc(db, "rounds", round.code), {
+    questionStatus: "FINISHED",
+    questionWinner: { ...questionSpin, finishedAt: Timestamp.now() },
+    updatedAt: serverTimestamp()
+  });
+  await batch.commit();
+}
 export const removeHistoryItem = (code, id) => deleteDoc(doc(db, "rounds", code, "history", id));
 export async function clearHistory(code) { const snapshots = await getDocs(collection(db, "rounds", code, "history")); const docs = snapshots.docs; for (let index = 0; index < docs.length; index += 450) { const batch = writeBatch(db); docs.slice(index, index + 450).forEach((snapshot) => batch.delete(snapshot.ref)); await batch.commit(); } }
 export const resetRound = (code) => updateRound(code, { status: "WAITING", spin: null, winner: null, questionStatus: null, questionSpin: null, questionWinner: null });
