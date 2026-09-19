@@ -1,0 +1,15 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // GitHub Pages cannot prove an administrator identity to Firestore. These
+    // development/event rules keep rooms functional. Replace with Firebase
+    // Authentication plus Cloud Functions before using with untrusted traffic.
+    match /rounds/{roundCode} {
+      allow read, write: if true;
+      match /entries/{entryId} { allow read, write: if true; }
+      match /presence/{presenceId} { allow read, write: if true; }
+      match /history/{historyId} { allow read, write: if true; }
+    }
+  }
+}

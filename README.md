@@ -1,77 +1,26 @@
-# Aplicación de preguntas para capacitaciones
+# Ronda
 
-Aplicación web estática lista para GitHub Pages con dos interfaces:
+Aplicación estática para sorteos y dinámicas en vivo. Se publica en GitHub Pages y sincroniza salas, opciones, presencia e historial con Cloud Firestore.
 
-- `index.html`: formulario para participantes.
-- `admin.html`: panel protegido por contraseña con lluvia de preguntas, sorteo con dado y administración.
+## Uso
 
-## Contraseña de administrador
+1. Abre `admin.html` e inicia sesión con la contraseña configurada.
+2. Crea una ronda y comparte el código o el enlace de invitación.
+3. Los invitados entran por `index.html`, escriben su nombre y esperan el giro.
 
-La contraseña actual del panel es:
+El administrador publica un único evento de giro en Firestore. Cada pantalla recibe ese evento y anima hacia el mismo ganador.
 
-```txt
-Capacitacion2026
-```
+## Firestore
 
-En el código se guarda como hash SHA-256 en `firebase-config.js` para que no aparezca escrita directamente en el repositorio público. Para máxima seguridad en producción, usa Firebase Auth.
+Publica las reglas de `firestore.rules` antes de usar la aplicación. Esas reglas están pensadas para una demostración o un evento de acceso controlado: permiten que el sitio estático cree y actualice rondas.
 
-## Configuración Firebase
+Para producción, no uses reglas públicas. La autenticación visual por contraseña y el token del navegador mejoran la experiencia, pero no son una frontera de seguridad verificable por Firestore. Mueve las operaciones de administración y el sorteo a Cloud Functions usando Firebase Authentication y custom claims. La guía y las variables necesarias para Google Sheets están en `backend/README.md` y `backend/.env.example`.
 
-1. Crea un proyecto en Firebase.
-2. Activa Firestore Database.
-3. Copia la configuración web del proyecto en `firebase-config.js`.
-4. Publica este repositorio con GitHub Pages.
+## Importación
 
-La colección usada por defecto es `training_questions`. Puedes cambiarla en `firebase-config.js`.
+- Excel: `.xlsx`, `.xls` y `.csv`, con columna seleccionable y confirmación previa.
+- Google Sheets: funciona con hojas públicas o publicadas como CSV. El flujo OAuth con archivos privados debe ejecutarse en el backend para no exponer credenciales.
 
-El archivo específico que debes actualizar con tus credenciales reales es:
+## Desarrollo
 
-```txt
-firebase-config.js
-```
-
-Mientras ese archivo tenga valores como `TU_API_KEY` o `TU_PROYECTO`, el formulario no podrá enviar preguntas a Firestore.
-
-## Publicar en GitHub Pages
-
-1. Sube este proyecto a un repositorio de GitHub.
-2. En GitHub entra a `Settings` > `Pages`.
-3. En `Build and deployment`, selecciona `Deploy from a branch`.
-4. Selecciona la rama `main` y la carpeta `/root`.
-5. Guarda los cambios.
-
-Las páginas quedarán disponibles como:
-
-- Participantes: `https://TU_USUARIO.github.io/TU_REPOSITORIO/`
-- Administrador: `https://TU_USUARIO.github.io/TU_REPOSITORIO/admin.html`
-
-## Ejecutar localmente
-
-Con Node.js:
-
-```bash
-node dev-server.mjs
-```
-
-Luego abre:
-
-- Participantes: `http://127.0.0.1:4173/index.html`
-- Administrador: `http://127.0.0.1:4173/admin.html`
-
-## Reglas Firestore sugeridas
-
-Reglas mínimas sugeridas para una demo cerrada:
-
-```txt
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /training_questions/{questionId} {
-      allow create: if true;
-      allow read, update, delete: if true;
-    }
-  }
-}
-```
-
-Para producción conviene usar Firebase Auth o reglas con un panel administrativo autenticado.
+Ejecuta `node dev-server.mjs` y abre `http://127.0.0.1:4173`.

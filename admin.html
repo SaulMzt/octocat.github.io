@@ -1,140 +1,30 @@
 <!doctype html>
 <html lang="es">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Administrador | Preguntas en vivo</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="theme-color" content="#121a32" />
+    <title>Administrar ronda | Ronda</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body class="admin-page">
-    <main id="loginView" class="login-shell">
-      <section class="login-panel" aria-labelledby="login-title">
-        <p class="eyebrow">Panel de moderación</p>
-        <h1 id="login-title">Acceso administrador</h1>
-        <form id="loginForm" class="question-form">
-          <label class="field-label" for="adminPassword">Contraseña</label>
-          <input id="adminPassword" type="password" autocomplete="current-password" placeholder="Contraseña" required />
-          <button class="primary-button" type="submit">Entrar</button>
-          <p id="loginMessage" class="status-message" role="status" aria-live="polite"></p>
-        </form>
+  <body class="site-body">
+    <main id="adminLogin" class="access-screen"><section class="access-card"><a class="brand" href="index.html"><span class="brand-mark"></span>Ronda</a><p class="kicker">ZONA PRIVADA</p><h1>Administra tu próxima dinámica.</h1><form id="loginForm" class="stack-form"><label for="adminPassword">Contraseña de administrador</label><input id="adminPassword" type="password" autocomplete="current-password" required /><button class="button button-primary" type="submit">Entrar al panel</button><p id="loginMessage" class="form-message" role="status"></p></form></section></main>
+    <main id="adminApp" class="admin-layout is-hidden">
+      <header class="app-header"><a class="brand" href="index.html"><span class="brand-mark"></span>Ronda</a><div class="header-actions"><span id="connectionStatus" class="status-chip" data-status="online">En línea</span><button id="newRoundButton" class="icon-button" type="button" title="Crear otra ronda" aria-label="Crear otra ronda">+</button><button id="logoutButton" class="button button-quiet" type="button">Salir</button></div></header>
+      <section id="roundSetup" class="setup-view"><div class="setup-intro"><p class="kicker">NUEVA RONDA</p><h1>Prepara una sala que todos puedan seguir.</h1><p>El código se genera al crear la ronda. Después puedes sumar opciones, importarlas o esperar a quienes se unan.</p></div><form id="createRoundForm" class="create-round-form"><label for="roundTitle">Título de la ronda</label><input id="roundTitle" maxlength="80" placeholder="Sorteo de la escuela" required /><label class="toggle-row" for="removeWinner"><input id="removeWinner" type="checkbox" checked /><span class="toggle-ui"></span><span>Eliminar ganador después del giro</span></label><button class="button button-primary button-large" type="submit">Crear ronda <span>→</span></button><p id="createMessage" class="form-message" role="status"></p></form></section>
+      <section id="roundDashboard" class="dashboard is-hidden">
+        <div class="round-banner"><div><p class="kicker">RONDA ACTIVA</p><h1 id="dashboardTitle">Mi ronda</h1></div><div class="share-code"><span>CÓDIGO DE RONDA</span><strong id="roundCodeDisplay">------</strong><button id="copyCodeButton" class="icon-button small" type="button" title="Copiar código" aria-label="Copiar código">⧉</button><button id="copyLinkButton" class="button button-quiet" type="button">Copiar enlace</button></div></div>
+        <div class="admin-grid">
+          <aside class="control-column"><section class="panel entry-panel"><div class="panel-heading"><div><p class="kicker">LISTA</p><h2>Participantes / Opciones</h2></div><span id="entryCount" class="count-badge">0</span></div><form id="addEntryForm" class="add-entry-form"><label class="sr-only" for="entryName">Nuevo participante</label><input id="entryName" maxlength="100" placeholder="Agregar participante" /><button class="icon-button add" type="submit" aria-label="Agregar participante">+</button></form><div class="entry-tools"><button id="bulkOpenButton" class="button button-quiet" type="button">Pegar lista</button><label class="button button-quiet file-button" for="excelFile">Importar Excel<input id="excelFile" type="file" accept=".xlsx,.xls,.csv" /></label></div><button id="sheetsOpenButton" class="sheets-link" type="button">Conectar Google Sheets <span>↗</span></button><ul id="entryList" class="entry-list" aria-live="polite"></ul></section><section class="panel compact-panel"><div class="panel-heading"><div><p class="kicker">SALA</p><h2>Participantes conectados</h2></div><span id="presenceCount" class="count-badge">0</span></div><ul id="presenceList" class="presence-list"></ul></section></aside>
+          <section class="stage-panel"><div class="stage-meta"><span id="roundState" class="state-label">ESPERANDO</span><span id="stageHint">Configura las opciones para comenzar.</span></div><div class="wheel-stage"><div class="wheel-pointer"></div><canvas id="adminWheel" width="720" height="720" aria-label="Ruleta de participantes"></canvas><div class="wheel-hub"><span id="wheelCount">0</span><small>opciones</small></div></div><div class="spin-controls"><button id="spinButton" class="button button-spin" type="button">GIRAR RULETA</button><button id="resetRoundButton" class="button button-quiet danger" type="button">Reiniciar ronda</button></div><p id="spinMessage" class="form-message center-message" role="status"></p></section>
+          <aside class="history-column"><section class="panel compact-panel"><div class="panel-heading"><div><p class="kicker">HISTORIAL</p><h2>Ganadores</h2></div></div><ol id="historyList" class="history-list"></ol></section><section class="panel compact-panel settings-panel"><p class="kicker">CONFIGURACIÓN</p><label class="toggle-row" for="soundToggle"><input id="soundToggle" type="checkbox" /><span class="toggle-ui"></span><span>Sonido</span></label><label class="toggle-row" for="confettiToggle"><input id="confettiToggle" type="checkbox" checked /><span class="toggle-ui"></span><span>Confeti</span></label><label class="field-label" for="durationSelect">Duración del giro</label><select id="durationSelect"><option value="5000">5 segundos</option><option value="7000" selected>7 segundos</option><option value="9000">9 segundos</option></select></section></aside>
+        </div>
       </section>
     </main>
-
-    <main id="adminView" class="admin-shell is-hidden">
-      <header class="admin-header">
-        <div>
-          <p class="eyebrow">Panel en vivo</p>
-          <h1>Gestión de Capacitación</h1>
-        </div>
-        <div class="admin-actions">
-          <button id="resetButton" class="ghost-button danger" type="button">Reiniciar sesión</button>
-        </div>
-      </header>
-
-      <section class="stats-row" aria-label="Resumen">
-        <article class="stat-tile">
-          <span id="totalCount">0</span>
-          <p>Preguntas Totales</p>
-        </article>
-        <article class="stat-tile">
-          <span id="pendingCount">0</span>
-          <p>Preguntas Pendientes</p>
-        </article>
-        <article class="stat-tile" style="border-color: rgba(155, 135, 255, 0.4);">
-          <span id="quizCount" style="color: var(--violet);">0</span>
-          <p>Respuestas de Quizz</p>
-        </article>
-      </section>
-
-      <div class="boards-wrapper">
-        <div class="board-col">
-          <h2 class="board-title">Lluvia de Preguntas</h2>
-          <section id="rainBoard" class="rain-board" aria-live="polite"></section>
-        </div>
-        <div class="board-col">
-          <h2 class="board-title" style="color: var(--violet);">Respuestas del Quizz</h2>
-          <section id="quizBoard" class="rain-board quiz-board" aria-live="polite"></section>
-        </div>
-      </div>
-
-      <div class="floating-controls">
-        <button id="quizAdminBtn" class="dice-button quiz-btn" type="button" aria-label="Administrar Quizz">
-          <span class="quiz-icon">?</span>
-        </button>
-        
-        <button id="diceButton" class="dice-button" type="button" aria-label="Sortear pregunta">
-          <span id="diceCube" class="dice-cube" aria-hidden="true">
-            <span></span><span></span><span></span><span></span><span></span><span></span>
-          </span>
-        </button>
-      </div>
-    </main>
-
-    <section id="winnerOverlay" class="winner-overlay is-hidden" aria-live="assertive">
-      <div class="winner-card">
-        <p class="eyebrow">Pregunta seleccionada</p>
-        <h2 id="winnerQuestion"></h2>
-        <p id="winnerMeta"></p>
-        <button id="closeWinner" class="primary-button" type="button">Cerrar</button>
-      </div>
-    </section>
-
-    <section id="quizConfigOverlay" class="winner-overlay is-hidden" aria-live="assertive">
-      <div class="winner-card">
-        <p class="eyebrow">Control de Quizz</p>
-        <h2>Configurar Resultados</h2>
-        <div class="form-group" style="text-align: left; margin-bottom: 20px;">
-          <label class="field-label" for="correctAnswer">Respuesta Correcta:</label>
-          <input type="text" id="correctAnswer" placeholder="Ej. cremeria" style="margin-top: 8px;" />
-        </div>
-        <button id="endQuizBtn" class="primary-button" type="button">Terminar y ver podio</button>
-        <button id="closeQuizConfig" class="ghost-button" type="button" style="margin-left: 10px;">Cancelar</button>
-      </div>
-    </section>
-
-    <section id="podiumOverlay" class="winner-overlay is-hidden" aria-live="assertive">
-      <div class="winner-card" style="width: min(100%, 850px); max-height: 95vh; overflow-y: auto;">
-        <h2>Resultados del Quizz</h2>
-        
-        <div class="podium-container">
-          <div class="podium-step step-2">
-            <span class="podium-name" id="podiumName2">-</span>
-            <span class="podium-rank">2do</span>
-          </div>
-          <div class="podium-step step-1">
-            <span class="podium-name" id="podiumName1">-</span>
-            <span class="podium-rank">1er</span>
-          </div>
-          <div class="podium-step step-3">
-            <span class="podium-name" id="podiumName3">-</span>
-            <span class="podium-rank">3er</span>
-          </div>
-        </div>
-
-        <div class="chart-container">
-          <div id="chartCorrect" class="chart-bar correct-bar"></div>
-          <div id="chartIncorrect" class="chart-bar incorrect-bar"></div>
-        </div>
-        <p style="font-size: 0.9rem; margin-bottom: 15px;"><span id="txtCorrectCount" style="color: var(--mint);">0</span> Bien / <span id="txtIncorrectCount" style="color: var(--coral);">0</span> Mal</p>
-
-        <div class="results-breakdown">
-          <div class="breakdown-col">
-            <h3>Tabla de Posiciones</h3>
-            <ol id="correctAnswersList"></ol>
-          </div>
-          <div class="breakdown-col">
-            <h3>Intentos Incorrectos</h3>
-            <ul id="incorrectAnswersList"></ul>
-          </div>
-        </div>
-
-        <button id="closePodium" class="primary-button" type="button" style="margin-top: 10px;">Cerrar Resultados</button>
-      </div>
-    </section>
-
+    <dialog id="bulkDialog" class="app-dialog"><form method="dialog" class="dialog-card"><button class="dialog-close" value="cancel" aria-label="Cerrar">×</button><p class="kicker">IMPORTACIÓN RÁPIDA</p><h2>Pega una lista</h2><p>Usamos una opción por línea.</p><textarea id="bulkText" rows="9" placeholder="Juan&#10;María&#10;Pedro"></textarea><div class="dialog-actions"><button value="cancel" class="button button-quiet">Cancelar</button><button id="bulkConfirmButton" value="default" class="button button-primary">Agregar opciones</button></div></form></dialog>
+    <dialog id="importDialog" class="app-dialog"><form method="dialog" class="dialog-card wide"><button class="dialog-close" value="cancel" aria-label="Cerrar">×</button><p class="kicker">VISTA PREVIA</p><h2>Importar archivo</h2><p id="importSummary">Analizando archivo...</p><label for="importColumn">Columna a importar</label><select id="importColumn"></select><div id="importPreview" class="import-preview"></div><div class="dialog-actions"><button value="cancel" class="button button-quiet">Cancelar</button><button id="importConfirmButton" value="default" class="button button-primary">Importar registros</button></div></form></dialog>
+    <dialog id="sheetsDialog" class="app-dialog"><form method="dialog" class="dialog-card"><button class="dialog-close" value="cancel" aria-label="Cerrar">×</button><p class="kicker">GOOGLE SHEETS</p><h2>Importa una hoja publicada</h2><p>Usa una URL de CSV publicada desde Google Sheets. La conexión OAuth queda preparada para el backend, sin exponer claves en el navegador.</p><label for="sheetUrl">URL de CSV o de Google Sheets</label><input id="sheetUrl" type="url" placeholder="https://docs.google.com/..." /><label for="sheetName">Hoja</label><input id="sheetName" type="text" placeholder="Participantes" /><div class="dialog-actions"><button value="cancel" class="button button-quiet">Cancelar</button><button id="sheetPreviewButton" value="default" class="button button-primary">Ver vista previa</button></div><p id="sheetMessage" class="form-message"></p></form></dialog>
+    <section id="winnerOverlay" class="winner-overlay is-hidden" aria-live="assertive"><div id="confettiLayer" class="confetti-layer"></div><div class="winner-content"><p>🎉 TENEMOS GANADOR</p><h2 id="winnerName">Nombre</h2><span id="winnerDetail">Giro #1</span><button id="closeWinnerButton" class="button button-dark" type="button">Continuar</button></div></section>
     <script type="module" src="admin.js"></script>
   </body>
 </html>
