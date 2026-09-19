@@ -88,6 +88,20 @@
               <ul id="entryList" class="entry-list" aria-live="polite"></ul>
             </section>
 
+            <section id="questionsPanel" class="panel questions-panel is-hidden">
+              <div class="panel-heading">
+                <div><p class="kicker">SEGUNDA RULETA</p><h2>Preguntas</h2></div>
+                <span id="questionCount" class="count-badge">0</span>
+              </div>
+              <form id="addQuestionForm" class="question-entry-form">
+                <label class="sr-only" for="questionEntryText">Nueva pregunta</label>
+                <textarea id="questionEntryText" rows="3" maxlength="360" placeholder="Escribe una pregunta para la segunda ruleta"></textarea>
+                <button class="button button-dark" type="submit">Agregar pregunta</button>
+              </form>
+              <button id="bulkQuestionsOpenButton" class="button button-quiet questions-bulk" type="button">Pegar varias preguntas</button>
+              <ul id="questionList" class="question-list" aria-live="polite"></ul>
+            </section>
+
             <section class="panel profiles-panel">
               <div class="panel-heading"><div><p class="kicker">PERFILES</p><h2>Listas rápidas</h2></div></div>
               <label class="sr-only" for="profileSelect">Perfil de lista</label>
@@ -118,7 +132,7 @@
               <div id="adminWheelStage" class="wheel-stage admin-wheel-stage">
                 <div class="wheel-pointer" aria-hidden="true"></div>
                 <canvas id="adminWheel" width="720" height="720" aria-label="Ruleta de participantes"></canvas>
-                <div class="wheel-hub"><span id="wheelCount">0</span><small>opciones</small></div>
+                <div class="wheel-hub"><span id="wheelCount">0</span><small id="wheelKind">opciones</small></div>
               </div>
             </div>
             <div class="spin-controls">
@@ -140,6 +154,7 @@
               <p class="kicker">CONFIGURACIÓN</p>
               <label class="toggle-row" for="soundToggle"><input id="soundToggle" type="checkbox" /><span class="toggle-ui" aria-hidden="true"></span><span>Sonido de giro</span></label>
               <label class="toggle-row" for="confettiToggle"><input id="confettiToggle" type="checkbox" checked /><span class="toggle-ui" aria-hidden="true"></span><span>Confeti</span></label>
+              <label class="toggle-row" for="questionModeToggle"><input id="questionModeToggle" type="checkbox" /><span class="toggle-ui" aria-hidden="true"></span><span>Preguntas después del ganador</span></label>
               <label class="field-label" for="durationSelect">Duración del giro</label>
               <select id="durationSelect"><option value="5000">5 segundos</option><option value="7000" selected>7 segundos</option><option value="9000">9 segundos</option></select>
             </section>
@@ -158,11 +173,19 @@
       <form method="dialog" class="dialog-card"><button class="dialog-close" value="cancel" aria-label="Cerrar">×</button><p class="kicker">GOOGLE SHEETS</p><h2>Importa una hoja publicada</h2><p>Usa una URL de CSV publicada desde Google Sheets. La conexión OAuth queda preparada para el backend, sin exponer claves en el navegador.</p><label for="sheetUrl">URL de CSV o de Google Sheets</label><input id="sheetUrl" type="url" placeholder="https://docs.google.com/..." /><label for="sheetName">Hoja</label><input id="sheetName" type="text" placeholder="Participantes" /><div class="dialog-actions"><button value="cancel" class="button button-quiet">Cancelar</button><button id="sheetPreviewButton" value="default" class="button button-primary">Ver vista previa</button></div><p id="sheetMessage" class="form-message"></p></form>
     </dialog>
 
+    <dialog id="bulkQuestionsDialog" class="app-dialog">
+      <form method="dialog" class="dialog-card"><button class="dialog-close" value="cancel" aria-label="Cerrar">×</button><p class="kicker">PREGUNTAS</p><h2>Pega una lista de preguntas</h2><p>Usamos una pregunta por línea.</p><textarea id="bulkQuestionsText" rows="9" placeholder="¿Qué aprendiste hoy?&#10;¿Qué tema quieres profundizar?&#10;¿Cuál es tu siguiente paso?"></textarea><div class="dialog-actions"><button value="cancel" class="button button-quiet">Cancelar</button><button id="bulkQuestionsConfirmButton" value="default" class="button button-primary">Agregar preguntas</button></div></form>
+    </dialog>
+
     <section id="wheelFullscreen" class="wheel-fullscreen is-hidden" aria-label="Ruleta a pantalla completa">
       <button id="exitFullscreenButton" class="icon-button fullscreen-close" type="button" aria-label="Cerrar pantalla completa" title="Cerrar">×</button>
       <div id="fullscreenWheelMount" class="fullscreen-wheel-mount"></div>
+      <button id="fullscreenSpinButton" class="button button-primary fullscreen-spin" type="button">GIRAR RULETA</button>
+      <section id="fullscreenWinner" class="fullscreen-winner is-hidden" aria-live="assertive"><div id="fullscreenConfettiLayer" class="confetti-layer" aria-hidden="true"></div><p id="fullscreenWinnerLabel" class="kicker">RESULTADO</p><h2 id="fullscreenWinnerName"></h2><button id="fullscreenWinnerContinue" class="button button-dark" type="button">Continuar</button></section>
     </section>
     <section id="winnerOverlay" class="winner-overlay is-hidden" aria-live="assertive"><div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div><div class="winner-content"><p>🎉 TENEMOS GANADOR</p><h2 id="winnerName">Nombre</h2><span id="winnerDetail">Giro #1</span><button id="closeWinnerButton" class="button button-dark" type="button">Continuar</button></div></section>
+    <section id="questionPromptOverlay" class="winner-overlay question-prompt is-hidden" aria-live="assertive"><div class="winner-content"><p>SEGUNDA RULETA</p><h2>Ahora gira por una pregunta</h2><span id="questionPromptDetail">La persona seleccionada elegirá el siguiente tema.</span><button id="questionPromptSpinButton" class="button button-primary" type="button">GIRAR PREGUNTA</button></div></section>
+    <section id="questionResultOverlay" class="winner-overlay question-result is-hidden" aria-live="assertive"><div id="questionConfettiLayer" class="confetti-layer" aria-hidden="true"></div><div class="winner-content"><p>💬 PREGUNTA SELECCIONADA</p><h2 id="questionResultText"></h2><button id="closeQuestionResultButton" class="button button-dark" type="button">Continuar</button></div></section>
     <script type="module" src="admin.js"></script>
   </body>
 </html>

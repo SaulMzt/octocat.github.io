@@ -247,3 +247,21 @@ textarea { resize: vertical; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+.questions-panel { border-color: rgba(91, 140, 255, .2); }
+.question-entry-form { display: grid; gap: 8px; }
+.question-entry-form textarea { min-height: 76px; font-size: .82rem; line-height: 1.45; }
+.questions-bulk { width: 100%; margin: 10px 0 2px; }
+.question-list { display: grid; max-height: 340px; margin: 0; padding: 0; overflow: auto; list-style: none; scrollbar-color: #cdd5e5 transparent; }
+.question-row { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: 8px; align-items: center; border-top: 1px solid #edf0f5; padding: 10px 0; color: var(--ink); font-size: .76rem; font-weight: 700; line-height: 1.35; }
+.question-row.disabled { opacity: .47; text-decoration: line-through; }
+.question-prompt .winner-content { max-width: 680px; }
+.question-prompt .winner-content h2 { font-size: clamp(2.7rem, 7vw, 5.7rem); }
+.question-result .winner-content h2 { max-width: 15ch; margin-inline: auto; font-size: clamp(2rem, 5.7vw, 4.7rem); line-height: 1.17; }
+.fullscreen-spin { position: fixed; z-index: 3; bottom: 28px; left: 50%; min-width: 220px; transform: translateX(-50%); box-shadow: 0 15px 36px rgba(0, 0, 0, .35); }
+.fullscreen-spin:hover { transform: translateX(-50%) translateY(-2px); }
+.fullscreen-winner { position: absolute; z-index: 5; inset: 0; display: grid; place-items: center; align-content: center; overflow: hidden; background: rgba(8, 13, 32, .87); color: #fff; padding: 40px 24px; text-align: center; }
+.fullscreen-winner .kicker { position: relative; z-index: 1; color: #f7d76c; }
+.fullscreen-winner h2 { position: relative; z-index: 1; max-width: 14ch; margin: 8px auto 28px; font-size: clamp(3rem, 9vw, 7.5rem); line-height: 1.03; text-shadow: 0 12px 35px rgba(0, 0, 0, .3); }
+.fullscreen-winner .button { position: relative; z-index: 1; }
+.fullscreen-winner .confetti-layer { z-index: 0; }

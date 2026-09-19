@@ -1,8 +1,9 @@
 import { ADMIN_PASSWORD_HASH } from "./firebase-config.js";
 import {
-  addEntries, addEntry, clearHistory, createRound, finishSpin, getRound, hashText,
-  isRoundAdmin, removeEntry, removeHistoryItem, reorderEntry, resetRound, startSpin,
-  updateEntry, updateRound, watchEntries, watchHistory, watchPresence, watchRound
+  addEntries, addEntry, addQuestion, addQuestions, clearHistory, createRound, finishQuestionSpin,
+  finishSpin, getRound, hashText, isRoundAdmin, removeEntry, removeHistoryItem, removeQuestion,
+  reorderEntry, reorderQuestion, resetRound, startQuestionSpin, startSpin, updateEntry, updateQuestion,
+  updateRound, watchEntries, watchHistory, watchPresence, watchQuestions, watchRound
 } from "./round-service.js";
 import { readPublishedSheet, readSpreadsheet, valuesForColumn } from "./import-service.js";
 import { deleteProfile, getProfiles, renameProfile, saveProfile } from "./profiles.js";
@@ -18,8 +19,10 @@ const fullscreenMount = $("#fullscreenWheelMount");
 
 let currentRound = null;
 let entries = [];
+let questions = [];
 let imported = null;
 let spinStarted = "";
+let questionSpinStarted = "";
 let finishTimer = null;
 let unsubscribers = [];
 
@@ -95,10 +98,13 @@ async function loadRound(code) {
   $("#durationSelect").value = foundRound.durationMs || 7000;
   $("#soundToggle").checked = Boolean(foundRound.sound);
   $("#confettiToggle").checked = foundRound.confetti !== false;
+  $("#questionModeToggle").checked = Boolean(foundRound.questionMode);
+  setQuestionPanelVisible(Boolean(foundRound.questionMode));
 
   unsubscribers = [
     watchRound(code, handleRoundUpdate, connectionError),
     watchEntries(code, renderEntries, connectionError),
+    watchQuestions(code, renderQuestions, connectionError),
     watchPresence(code, renderPresence, connectionError),
     watchHistory(code, renderHistory, connectionError)
   ];
@@ -109,8 +115,16 @@ function handleRoundUpdate(round) {
   currentRound = round;
   $("#dashboardTitle").textContent = round.title;
   $("#roundState").textContent = stateLabel(round.status);
-  $("#spinButton").disabled = round.status === "SPINNING";
+  const questionWaiting = round.questionMode && round.questionStatus === "WAITING";
+  const questionSpinning = round.questionStatus === "SPINNING";
+  $("#spinButton").disabled = round.status === "SPINNING" || questionSpinning;
+  $("#spinButton").textContent = questionWaiting ? "GIRAR PREGUNTA" : "GIRAR RULETA";
+  $("#fullscreenSpinButton").disabled = round.status === "SPINNING" || questionSpinning;
+  $("#fullscreenSpinButton").textContent = questionWaiting ? "GIRAR PREGUNTA" : "GIRAR RULETA";
   $("#stageHint").textContent = hintFor(round.status);
+  $("#questionModeToggle").checked = Boolean(round.questionMode);
+  setQuestionPanelVisible(Boolean(round.questionMode));
+  renderWheel();
 
   if (round.status === "SPINNING" && round.spin && spinStarted !== `${round.spin.spinNumber}-spinning`) {
     spinStarted = `${round.spin.spinNumber}-spinning`;
@@ -121,6 +135,19 @@ function handleRoundUpdate(round) {
     spinStarted = `${round.winner.spinNumber}-finished`;
     stopWheelSound();
     showWinner(round.winner, round.confetti);
+  }
+
+  if (round.questionStatus === "SPINNING" && round.questionSpin && questionSpinStarted !== `${round.questionSpin.spinNumber}-spinning`) {
+    $("#questionPromptOverlay").classList.add("is-hidden");
+    $("#fullscreenWinner").classList.add("is-hidden");
+    questionSpinStarted = `${round.questionSpin.spinNumber}-spinning`;
+    runQuestionSpin(round.questionSpin, round.sound);
+  }
+
+  if (round.questionStatus === "FINISHED" && round.questionWinner && questionSpinStarted !== `${round.questionWinner.spinNumber}-finished`) {
+    questionSpinStarted = `${round.questionWinner.spinNumber}-finished`;
+    stopWheelSound();
+    showQuestionResult(round.questionWinner, round.confetti);
   }
 }
 
@@ -134,11 +161,18 @@ function runSpin(spin, soundEnabled, completeRound) {
   });
 }
 
+function runQuestionSpin(spin, soundEnabled) {
+  wheelStage.classList.add("is-spinning");
+  if (soundEnabled) playWheelSound(spin.durationMs);
+  spinWheel(wheel, spin, () => {
+    wheelStage.classList.remove("is-spinning");
+    stopWheelSound();
+    finishQuestionAfterSpin();
+  });
+}
+
 function renderEntries(list) {
   entries = list;
-  const activeEntries = entries.filter((entry) => entry.enabled);
-  drawWheel(wheel, activeEntries);
-  $("#wheelCount").textContent = activeEntries.length;
   $("#entryCount").textContent = entries.length;
   $("#entryList").innerHTML = entries.map((entry, index) => `
     <li class="entry-row ${entry.enabled ? "" : "disabled"}">
@@ -151,6 +185,39 @@ function renderEntries(list) {
         <button data-action="delete" data-id="${entry.id}" class="entry-action delete" title="Eliminar" aria-label="Eliminar">×</button>
       </div>
     </li>`).join("") || "<li class=\"empty-list\">Aún no hay opciones.</li>";
+}
+
+function renderQuestions(list) {
+  questions = list;
+  $("#questionCount").textContent = questions.length;
+  $("#questionList").innerHTML = questions.map((question, index) => `
+    <li class="question-row ${question.enabled ? "" : "disabled"}">
+      <button class="entry-enable" data-question-action="toggle" data-question-id="${question.id}" title="${question.enabled ? "Desactivar" : "Activar"}" aria-label="${question.enabled ? "Desactivar" : "Activar"}"></button>
+      <span>${escapeHtml(question.name)}</span>
+      <div class="entry-actions">
+        <button data-question-action="up" data-question-index="${index}" class="entry-action" title="Subir" aria-label="Subir">↑</button>
+        <button data-question-action="down" data-question-index="${index}" class="entry-action" title="Bajar" aria-label="Bajar">↓</button>
+        <button data-question-action="edit" data-question-id="${question.id}" class="entry-action" title="Editar" aria-label="Editar">✎</button>
+        <button data-question-action="delete" data-question-id="${question.id}" class="entry-action delete" title="Eliminar" aria-label="Eliminar">×</button>
+      </div>
+    </li>`).join("") || "<li class=\"empty-list\">Añade las preguntas para la segunda ruleta.</li>";
+  renderWheel();
+}
+
+function isQuestionWheelActive() {
+  return Boolean(currentRound?.questionMode && ["WAITING", "SPINNING", "FINISHED"].includes(currentRound.questionStatus));
+}
+
+function renderWheel() {
+  const showingQuestions = isQuestionWheelActive();
+  const items = (showingQuestions ? questions : entries).filter((item) => item.enabled);
+  drawWheel(wheel, items);
+  $("#wheelCount").textContent = items.length;
+  $("#wheelKind").textContent = showingQuestions ? "preguntas" : "opciones";
+}
+
+function setQuestionPanelVisible(show) {
+  $("#questionsPanel").classList.toggle("is-hidden", !show);
 }
 
 function renderPresence(list) {
@@ -186,6 +253,26 @@ async function handleEntryAction(event) {
     if (name?.trim()) await updateEntry(currentRound.code, entry.id, { name: name.trim().slice(0, 100) });
   }
   if (["up", "down"].includes(action)) await reorderEntry(currentRound.code, entries, Number(button.dataset.index), action === "up" ? -1 : 1);
+}
+
+async function addSingleQuestion(event) {
+  event.preventDefault();
+  await addQuestion(currentRound.code, $("#questionEntryText").value, questions.length);
+  $("#questionEntryText").value = "";
+}
+
+async function handleQuestionAction(event) {
+  const button = event.target.closest("button[data-question-action]");
+  if (!button) return;
+  const action = button.dataset.questionAction;
+  const question = questions.find((item) => item.id === button.dataset.questionId);
+  if (action === "toggle" && question) await updateQuestion(currentRound.code, question.id, { enabled: !question.enabled });
+  if (action === "delete" && question && confirm("¿Eliminar esta pregunta?")) await removeQuestion(currentRound.code, question.id);
+  if (action === "edit" && question) {
+    const text = prompt("Texto de la pregunta", question.name);
+    if (text?.trim()) await updateQuestion(currentRound.code, question.id, { name: text.trim().slice(0, 360) });
+  }
+  if (["up", "down"].includes(action)) await reorderQuestion(currentRound.code, questions, Number(button.dataset.questionIndex), action === "up" ? -1 : 1);
 }
 
 function renderProfiles(selectedId) {
@@ -260,6 +347,10 @@ function renderImportPreview() {
 }
 
 async function startRoundSpin() {
+  if (currentRound?.questionMode && currentRound.questionStatus === "WAITING") {
+    await startQuestionRoundSpin();
+    return;
+  }
   try {
     await unlockWheelSound();
     setMessage("Preparando el giro para toda la sala...");
@@ -271,6 +362,14 @@ async function startRoundSpin() {
   }
 }
 
+function startFullscreenSpin() {
+  if (currentRound?.questionMode && currentRound.questionStatus === "WAITING") {
+    startQuestionRoundSpin();
+    return;
+  }
+  startRoundSpin();
+}
+
 function finishAfterSpin() {
   clearTimeout(finishTimer);
   finishTimer = window.setTimeout(async () => {
@@ -279,7 +378,31 @@ function finishAfterSpin() {
   }, 180);
 }
 
+async function startQuestionRoundSpin() {
+  try {
+    await unlockWheelSound();
+    $("#questionPromptOverlay").classList.add("is-hidden");
+    const questionSpin = await startQuestionSpin(currentRound, questions);
+    questionSpinStarted = `${questionSpin.spinNumber}-spinning`;
+    runQuestionSpin(questionSpin, currentRound.sound);
+  } catch (error) {
+    setMessage(error.message || "No se pudo iniciar la ruleta de preguntas.", "error");
+  }
+}
+
+function finishQuestionAfterSpin() {
+  clearTimeout(finishTimer);
+  finishTimer = window.setTimeout(async () => {
+    const freshRound = await getRound(currentRound.code);
+    if (freshRound?.questionStatus === "SPINNING") await finishQuestionSpin(freshRound);
+  }, 180);
+}
+
 function showWinner(winner, confettiEnabled) {
+  if (fullscreenOverlay.contains(wheelStage)) {
+    showFullscreenResult("TENEMOS GANADOR", winner.winnerName, "Continuar", "winner", confettiEnabled);
+    return;
+  }
   $("#winnerName").textContent = winner.winnerName;
   $("#winnerDetail").textContent = `Giro #${winner.spinNumber}`;
   $("#winnerOverlay").classList.remove("is-hidden");
@@ -287,6 +410,49 @@ function showWinner(winner, confettiEnabled) {
     sprinkle($("#confettiLayer"));
     playWinnerSound();
   }
+}
+
+function showQuestionPrompt() {
+  if (!currentRound?.questionMode || currentRound.questionStatus !== "WAITING") return;
+  if (fullscreenOverlay.contains(wheelStage)) {
+    showFullscreenResult("SEGUNDA RULETA", "Ahora gira por una pregunta", "GIRAR PREGUNTA", "question-prompt", false);
+    return;
+  }
+  $("#questionPromptDetail").textContent = `${currentRound.winner?.winnerName || "La persona seleccionada"} elegirá el siguiente tema.`;
+  $("#questionPromptOverlay").classList.remove("is-hidden");
+}
+
+function showQuestionResult(question, confettiEnabled) {
+  if (fullscreenOverlay.contains(wheelStage)) {
+    showFullscreenResult("PREGUNTA SELECCIONADA", question.winnerName, "Continuar", "question-result", confettiEnabled);
+    return;
+  }
+  $("#questionResultText").textContent = question.winnerName;
+  $("#questionResultOverlay").classList.remove("is-hidden");
+  if (confettiEnabled) {
+    sprinkle($("#questionConfettiLayer"));
+    playWinnerSound();
+  }
+}
+
+function showFullscreenResult(label, text, buttonText, mode, confettiEnabled) {
+  $("#fullscreenWinnerLabel").textContent = label;
+  $("#fullscreenWinnerName").textContent = text;
+  $("#fullscreenWinnerContinue").textContent = buttonText;
+  $("#fullscreenWinnerContinue").dataset.mode = mode;
+  $("#fullscreenWinner").classList.remove("is-hidden");
+  if (confettiEnabled) {
+    sprinkle($("#fullscreenConfettiLayer"));
+    playWinnerSound();
+  }
+}
+
+function continueFromFullscreenResult() {
+  const button = $("#fullscreenWinnerContinue");
+  const mode = button.dataset.mode;
+  $("#fullscreenWinner").classList.add("is-hidden");
+  if (mode === "winner") showQuestionPrompt();
+  if (mode === "question-prompt") startQuestionRoundSpin();
 }
 
 function sprinkle(layer) {
@@ -325,6 +491,8 @@ $("#createRoundForm").addEventListener("submit", createNewRound);
 $("#newRoundButton").addEventListener("click", () => { stopWatching(); sessionStorage.removeItem("ronda-current-admin"); currentRound = null; $("#roundDashboard").classList.add("is-hidden"); $("#roundSetup").classList.remove("is-hidden"); });
 $("#addEntryForm").addEventListener("submit", addSingleEntry);
 $("#entryList").addEventListener("click", handleEntryAction);
+$("#addQuestionForm").addEventListener("submit", addSingleQuestion);
+$("#questionList").addEventListener("click", handleQuestionAction);
 $("#profileSelect").addEventListener("change", updateProfileActions);
 $("#profileLoadButton").addEventListener("click", loadSelectedProfile);
 $("#profileSaveButton").addEventListener("click", saveCurrentProfile);
@@ -332,6 +500,8 @@ $("#profileRenameButton").addEventListener("click", renameSelectedProfile);
 $("#profileDeleteButton").addEventListener("click", deleteSelectedProfile);
 $("#bulkOpenButton").addEventListener("click", () => $("#bulkDialog").showModal());
 $("#bulkConfirmButton").addEventListener("click", async (event) => { event.preventDefault(); const names = $("#bulkText").value.split(/\r?\n/).map((name) => name.trim()).filter(Boolean); if (names.length) await addEntries(currentRound.code, names, entries.length); $("#bulkText").value = ""; $("#bulkDialog").close(); });
+$("#bulkQuestionsOpenButton").addEventListener("click", () => $("#bulkQuestionsDialog").showModal());
+$("#bulkQuestionsConfirmButton").addEventListener("click", async (event) => { event.preventDefault(); const text = $("#bulkQuestionsText").value.split(/\r?\n/).map((item) => item.trim()).filter(Boolean); if (text.length) await addQuestions(currentRound.code, text, questions.length); $("#bulkQuestionsText").value = ""; $("#bulkQuestionsDialog").close(); });
 $("#excelFile").addEventListener("change", async (event) => { const file = event.target.files[0]; if (!file) return; try { await openSpreadsheet(file); } catch (error) { setMessage(error.message, "error"); } finally { event.target.value = ""; } });
 $("#importConfirmButton").addEventListener("click", async (event) => { event.preventDefault(); await addEntries(currentRound.code, valuesForColumn(imported, Number($("#importColumn").value)), entries.length); $("#importDialog").close(); });
 $("#sheetsOpenButton").addEventListener("click", () => $("#sheetsDialog").showModal());
@@ -343,11 +513,16 @@ $("#clearHistoryButton").addEventListener("click", async () => { if (confirm("¿
 $("#durationSelect").addEventListener("change", (event) => updateRound(currentRound.code, { durationMs: Number(event.target.value) }));
 $("#soundToggle").addEventListener("change", async (event) => { currentRound.sound = event.target.checked; await unlockWheelSound(); await updateRound(currentRound.code, { sound: event.target.checked }); if (event.target.checked) playWheelSound(520); });
 $("#confettiToggle").addEventListener("change", (event) => updateRound(currentRound.code, { confetti: event.target.checked }));
+$("#questionModeToggle").addEventListener("change", async (event) => { currentRound.questionMode = event.target.checked; if (!event.target.checked) currentRound.questionStatus = null; setQuestionPanelVisible(event.target.checked); renderWheel(); await updateRound(currentRound.code, event.target.checked ? { questionMode: true } : { questionMode: false, questionStatus: null, questionSpin: null, questionWinner: null }); });
 $("#copyCodeButton").addEventListener("click", () => copyText(currentRound.code));
 $("#copyLinkButton").addEventListener("click", () => copyText(`${location.origin}${location.pathname.replace(/admin\.html$/, "")}room.html?code=${currentRound.code}`));
-$("#closeWinnerButton").addEventListener("click", () => $("#winnerOverlay").classList.add("is-hidden"));
+$("#closeWinnerButton").addEventListener("click", () => { $("#winnerOverlay").classList.add("is-hidden"); showQuestionPrompt(); });
+$("#questionPromptSpinButton").addEventListener("click", startQuestionRoundSpin);
+$("#closeQuestionResultButton").addEventListener("click", () => $("#questionResultOverlay").classList.add("is-hidden"));
 $("#fullscreenButton").addEventListener("click", openFullscreenWheel);
 $("#exitFullscreenButton").addEventListener("click", closeFullscreenWheel);
+$("#fullscreenSpinButton").addEventListener("click", startFullscreenSpin);
+$("#fullscreenWinnerContinue").addEventListener("click", continueFromFullscreenResult);
 document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && fullscreenOverlay.contains(wheelStage)) closeFullscreenWheel(); });
 document.addEventListener("keydown", (event) => { if (event.key === "Escape" && fullscreenOverlay.contains(wheelStage)) closeFullscreenWheel(); });
 

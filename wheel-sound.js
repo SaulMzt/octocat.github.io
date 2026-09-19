@@ -16,7 +16,7 @@ export async function unlockWheelSound() {
 }
 
 export function stopWheelSound() {
-  activeNodes.forEach(({ oscillator, gain }) => { try { oscillator.stop(); gain.disconnect(); } catch {} });
+  activeNodes.forEach(({ oscillator, source, gain }) => { try { (oscillator || source)?.stop(); gain.disconnect(); } catch {} });
   activeNodes = [];
 }
 
@@ -72,6 +72,23 @@ export function playWinnerSound() {
     oscillator.stop(time + (index === notes.length - 1 ? 0.62 : 0.2));
     activeNodes.push({ oscillator, gain });
   });
+
+  const buffer = context.createBuffer(1, context.sampleRate * 0.72, context.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let index = 0; index < data.length; index += 1) {
+    const envelope = Math.pow(1 - index / data.length, 3.4);
+    data[index] = (Math.random() * 2 - 1) * envelope;
+  }
+  const source = context.createBufferSource();
+  const gain = context.createGain();
+  const shimmer = context.createBiquadFilter();
+  source.buffer = buffer;
+  shimmer.type = "highpass";
+  shimmer.frequency.value = 2100;
+  gain.gain.value = 0.075;
+  source.connect(shimmer).connect(gain).connect(context.destination);
+  source.start(startedAt + 0.22);
+  activeNodes.push({ source, gain });
 
   window.setTimeout(stopWheelSound, 1250);
 }
