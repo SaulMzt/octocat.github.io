@@ -466,7 +466,13 @@ async function startQuestionRoundSpin() {
       runQuestionSpin(questionSpin, currentRound.sound);
     }
   } catch (error) {
-    setMessage(error.message || "No se pudo iniciar la ruleta de preguntas.", "error");
+    const message = error.message || "No se pudo iniciar la ruleta de preguntas.";
+    setMessage(message, "error");
+    if (isSelectionFullscreen()) showFullscreenResult("NO SE PUEDE GIRAR", message, "VOLVER", "question-error", false);
+    else {
+      $("#questionPromptDetail").textContent = message;
+      $("#questionPromptOverlay").classList.remove("is-hidden");
+    }
   }
 }
 
@@ -537,8 +543,12 @@ function continueFromFullscreenResult() {
   const button = $("#fullscreenWinnerContinue");
   const mode = button.dataset.mode;
   $("#fullscreenWinner").classList.add("is-hidden");
-  if (mode === "winner") showQuestionPrompt();
+  if (mode === "winner") {
+    if (currentRound?.questionMode && currentRound.questionStatus === "WAITING") window.requestAnimationFrame(showQuestionPrompt);
+    else closeFullscreenWheel();
+  }
   if (mode === "question-prompt") startQuestionRoundSpin();
+  if (["question-result", "question-error"].includes(mode)) closeFullscreenWheel();
 }
 
 function sprinkle(layer) {
@@ -632,7 +642,7 @@ $("#confettiToggle").addEventListener("change", (event) => updateRound(currentRo
 $("#questionModeToggle").addEventListener("change", async (event) => { currentRound.questionMode = event.target.checked; if (!event.target.checked) currentRound.questionStatus = null; setQuestionPanelVisible(event.target.checked); renderSelectionStage(); await updateRound(currentRound.code, event.target.checked ? { questionMode: true } : { questionMode: false, questionStatus: null, questionSpin: null, questionWinner: null }); });
 $("#copyCodeButton").addEventListener("click", () => copyText(currentRound.code));
 $("#copyLinkButton").addEventListener("click", () => copyText(`${location.origin}${location.pathname.replace(/admin\.html$/, "")}room.html?code=${currentRound.code}`));
-$("#closeWinnerButton").addEventListener("click", () => { $("#winnerOverlay").classList.add("is-hidden"); showQuestionPrompt(); });
+$("#closeWinnerButton").addEventListener("click", () => { $("#winnerOverlay").classList.add("is-hidden"); window.requestAnimationFrame(showQuestionPrompt); });
 $("#questionPromptSpinButton").addEventListener("click", startQuestionRoundSpin);
 $("#closeQuestionResultButton").addEventListener("click", () => $("#questionResultOverlay").classList.add("is-hidden"));
 $("#fullscreenButton").addEventListener("click", openFullscreenWheel);

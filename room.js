@@ -144,6 +144,7 @@ async function spinQuestion() {
     }
   } catch (error) {
     $("#roomQuestionPromptDetail").textContent = error.message || "No se pudo girar la ruleta de preguntas.";
+    $("#roomQuestionPrompt").classList.remove("is-hidden");
   }
 }
 
@@ -177,7 +178,7 @@ function sprinkle(layer) { layer.innerHTML = Array.from({ length: 52 }, (_, inde
 function escapeHtml(value) { const element = document.createElement("div"); element.textContent = value; return element.innerHTML; }
 function connectionError() { $("#roomStatus").textContent = "Reconectando..."; }
 
-$("#roomCloseWinner").addEventListener("click", () => { $("#roomWinnerOverlay").classList.add("is-hidden"); showQuestionPrompt(); });
+$("#roomCloseWinner").addEventListener("click", () => { $("#roomWinnerOverlay").classList.add("is-hidden"); window.requestAnimationFrame(showQuestionPrompt); });
 $("#roomQuestionSpinButton").addEventListener("click", spinQuestion);
 $("#roomCloseQuestionResult").addEventListener("click", () => $("#roomQuestionResult").classList.add("is-hidden"));
 $("#roomAudioToggle").addEventListener("click", async () => { await unlockWheelSound(); localMuted = !localMuted; $("#roomAudioToggle").textContent = localMuted ? "×" : "♪"; $("#roomAudioToggle").setAttribute("aria-label", localMuted ? "Activar audio" : "Silenciar audio"); setMasterVolume(localMuted ? 0 : (localVolume ?? round?.volume ?? .65)); setAmbientMusic(Boolean(round?.sound && round?.music && !localMuted)); });

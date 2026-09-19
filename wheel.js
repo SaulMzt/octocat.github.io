@@ -25,7 +25,7 @@ function wheelLabelLines(ctx, value, maxWidth, maxLines) {
 
   if (line && lines.length < maxLines) lines.push(line);
   if (words.length && lines.length) {
-    let last = lines.at(-1);
+    let last = lines[lines.length - 1];
     while (last.length > 1 && ctx.measureText(`${last}…`).width > maxWidth) last = last.slice(0, -1);
     lines[lines.length - 1] = `${last}…`;
   }

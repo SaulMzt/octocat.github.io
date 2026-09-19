@@ -108,7 +108,7 @@ export function runRace(container, entries, spin, options = {}) {
 export function showRaceWinner(container, entries, winner) {
   renderRace(container, entries, { winnerId: winner.winnerId, spinNumber: winner.spinNumber });
   container.classList.add("has-winner");
-  const survivor = container.querySelector(`[data-runner-id="${CSS.escape(winner.winnerId)}"]`);
+  const survivor = [...container.querySelectorAll(".race-runner")].find((runner) => runner.dataset.runnerId === winner.winnerId);
   survivor?.classList.add("is-survivor");
 }
 
