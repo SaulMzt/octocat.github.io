@@ -132,9 +132,15 @@ function finishQuestionAfterSpin() {
 }
 
 function showQuestionResult(question, confetti) {
-  $("#roomQuestionResultText").textContent = question.winnerName;
+  setAdaptiveQuestionText($("#roomQuestionResultText"), question.winnerName);
   $("#roomQuestionResult").classList.remove("is-hidden");
   if (confetti) { sprinkle($("#roomQuestionConfetti")); playWinnerSound(); }
+}
+
+function setAdaptiveQuestionText(element, text) {
+  element.textContent = text;
+  element.classList.toggle("long-question", text.length > 105);
+  element.classList.toggle("very-long-question", text.length > 175);
 }
 
 function renderPresence(list) {

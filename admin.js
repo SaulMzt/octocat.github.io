@@ -483,7 +483,7 @@ function showQuestionResult(question, confettiEnabled) {
     showFullscreenResult("PREGUNTA SELECCIONADA", question.winnerName, "Continuar", "question-result", confettiEnabled);
     return;
   }
-  $("#questionResultText").textContent = question.winnerName;
+  setAdaptiveQuestionText($("#questionResultText"), question.winnerName);
   $("#questionResultOverlay").classList.remove("is-hidden");
   if (confettiEnabled) {
     sprinkle($("#questionConfettiLayer"));
@@ -492,8 +492,13 @@ function showQuestionResult(question, confettiEnabled) {
 }
 
 function showFullscreenResult(label, text, buttonText, mode, confettiEnabled) {
+  const result = $("#fullscreenWinner");
+  const resultText = $("#fullscreenWinnerName");
   $("#fullscreenWinnerLabel").textContent = label;
-  $("#fullscreenWinnerName").textContent = text;
+  result.classList.toggle("question-result-mode", mode === "question-result");
+  resultText.classList.remove("long-question", "very-long-question");
+  if (mode === "question-result") setAdaptiveQuestionText(resultText, text);
+  else resultText.textContent = text;
   $("#fullscreenWinnerContinue").textContent = buttonText;
   $("#fullscreenWinnerContinue").dataset.mode = mode;
   $("#fullscreenWinner").classList.remove("is-hidden");
@@ -501,6 +506,12 @@ function showFullscreenResult(label, text, buttonText, mode, confettiEnabled) {
     sprinkle($("#fullscreenConfettiLayer"));
     playWinnerSound();
   }
+}
+
+function setAdaptiveQuestionText(element, text) {
+  element.textContent = text;
+  element.classList.toggle("long-question", text.length > 105);
+  element.classList.toggle("very-long-question", text.length > 175);
 }
 
 function continueFromFullscreenResult() {
