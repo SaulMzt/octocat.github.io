@@ -252,6 +252,11 @@ textarea { resize: vertical; }
 .question-entry-form { display: grid; gap: 8px; }
 .question-entry-form textarea { min-height: 76px; font-size: .82rem; line-height: 1.45; }
 .questions-bulk { width: 100%; margin: 10px 0 2px; }
+.question-profiles { display: grid; gap: 8px; margin: 14px 0 8px; border: 1px solid #e4e8f2; border-radius: 7px; background: #f8f9fc; padding: 12px; }
+.question-profiles .field-label { color: var(--muted); font-size: .72rem; }
+.question-profiles select { padding: 10px; font-size: .79rem; }
+.question-profiles .profile-actions { margin-top: 0; }
+.question-profiles .profile-manage { margin-top: 2px; }
 .question-list { display: grid; max-height: 340px; margin: 0; padding: 0; overflow: auto; list-style: none; scrollbar-color: #cdd5e5 transparent; }
 .question-row { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: 8px; align-items: center; border-top: 1px solid #edf0f5; padding: 10px 0; color: var(--ink); font-size: .76rem; font-weight: 700; line-height: 1.35; }
 .question-row.disabled { opacity: .47; text-decoration: line-through; }

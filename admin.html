@@ -99,6 +99,18 @@
                 <button class="button button-dark" type="submit">Agregar pregunta</button>
               </form>
               <button id="bulkQuestionsOpenButton" class="button button-quiet questions-bulk" type="button">Pegar varias preguntas</button>
+              <div class="question-profiles">
+                <label class="field-label" for="questionProfileSelect">Perfiles de preguntas</label>
+                <select id="questionProfileSelect"></select>
+                <div class="profile-actions">
+                  <button id="questionProfileLoadButton" class="button button-dark" type="button">Cargar perfil</button>
+                  <button id="questionProfileSaveButton" class="button button-quiet" type="button">Guardar lista</button>
+                </div>
+                <div class="profile-manage">
+                  <button id="questionProfileRenameButton" class="text-action" type="button">Editar nombre</button>
+                  <button id="questionProfileDeleteButton" class="text-action danger" type="button">Eliminar perfil</button>
+                </div>
+              </div>
               <ul id="questionList" class="question-list" aria-live="polite"></ul>
             </section>
 

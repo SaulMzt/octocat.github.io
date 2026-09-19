@@ -2,11 +2,11 @@ import { ADMIN_PASSWORD_HASH } from "./firebase-config.js";
 import {
   addEntries, addEntry, addQuestion, addQuestions, clearHistory, createRound, finishQuestionSpin,
   finishSpin, getRound, hashText, isRoundAdmin, removeEntry, removeHistoryItem, removeQuestion,
-  reorderEntry, reorderQuestion, resetRound, startQuestionSpin, startSpin, updateEntry, updateQuestion,
+  reorderEntry, reorderQuestion, replaceEntries, replaceQuestions, resetRound, startQuestionSpin, startSpin, updateEntry, updateQuestion,
   updateRound, watchEntries, watchHistory, watchPresence, watchQuestions, watchRound
 } from "./round-service.js";
 import { readPublishedSheet, readSpreadsheet, valuesForColumn } from "./import-service.js";
-import { deleteProfile, getProfiles, renameProfile, saveProfile } from "./profiles.js";
+import { deleteProfile, deleteQuestionProfile, getProfiles, getQuestionProfiles, renameProfile, renameQuestionProfile, saveProfile, saveQuestionProfile } from "./profiles.js";
 import { playWheelSound, playWinnerSound, stopWheelSound, unlockWheelSound } from "./wheel-sound.js";
 import { drawWheel, spinWheel } from "./wheel.js";
 
@@ -59,6 +59,7 @@ function showAdmin() {
   $("#adminLogin").classList.add("is-hidden");
   $("#adminApp").classList.remove("is-hidden");
   renderProfiles();
+  renderQuestionProfiles();
   const existingCode = sessionStorage.getItem("ronda-current-admin");
   if (existingCode) loadRound(existingCode);
 }
@@ -104,7 +105,7 @@ async function loadRound(code) {
   unsubscribers = [
     watchRound(code, handleRoundUpdate, connectionError),
     watchEntries(code, renderEntries, connectionError),
-    watchQuestions(code, renderQuestions, connectionError),
+    watchQuestions(code, renderQuestions, questionConnectionError),
     watchPresence(code, renderPresence, connectionError),
     watchHistory(code, renderHistory, connectionError)
   ];
@@ -257,8 +258,12 @@ async function handleEntryAction(event) {
 
 async function addSingleQuestion(event) {
   event.preventDefault();
-  await addQuestion(currentRound.code, $("#questionEntryText").value, questions.length);
-  $("#questionEntryText").value = "";
+  try {
+    await addQuestion(currentRound.code, $("#questionEntryText").value, questions.length);
+    $("#questionEntryText").value = "";
+  } catch (error) {
+    reportQuestionError(error);
+  }
 }
 
 async function handleQuestionAction(event) {
@@ -295,9 +300,9 @@ function updateProfileActions() {
 async function loadSelectedProfile() {
   const profile = selectedProfile();
   if (!profile) return;
-  if (entries.length && !confirm(`¿Agregar las ${profile.entries.length} opciones de “${profile.name}” a la lista actual?`)) return;
-  await addEntries(currentRound.code, profile.entries, entries.length);
-  setMessage(`Perfil “${profile.name}” agregado a la ruleta.`);
+  if (entries.length && !confirm(`¿Reemplazar la lista actual con el perfil “${profile.name}”?`)) return;
+  await replaceEntries(currentRound.code, profile.entries);
+  setMessage(`Perfil “${profile.name}” cargado. La lista anterior fue reemplazada.`);
 }
 
 function saveCurrentProfile() {
@@ -324,6 +329,67 @@ function deleteSelectedProfile() {
   if (!profile || profile.locked || !confirm(`¿Eliminar el perfil “${profile.name}”?`)) return;
   deleteProfile(profile.id);
   renderProfiles();
+}
+
+function renderQuestionProfiles(selectedId) {
+  const profiles = getQuestionProfiles();
+  const select = $("#questionProfileSelect");
+  const currentId = selectedId || select.value || profiles[0]?.id;
+  select.innerHTML = profiles.map((profile) => `<option value="${profile.id}">${escapeHtml(profile.name)}${profile.locked ? " · predefinido" : ""}</option>`).join("");
+  select.value = profiles.some((profile) => profile.id === currentId) ? currentId : profiles[0]?.id;
+  updateQuestionProfileActions();
+}
+
+function selectedQuestionProfile() { return getQuestionProfiles().find((profile) => profile.id === $("#questionProfileSelect").value); }
+function updateQuestionProfileActions() {
+  const profile = selectedQuestionProfile();
+  const disabled = !profile || profile.locked;
+  $("#questionProfileRenameButton").disabled = disabled;
+  $("#questionProfileDeleteButton").disabled = disabled;
+}
+
+async function loadSelectedQuestionProfile() {
+  const profile = selectedQuestionProfile();
+  if (!profile) return;
+  if (questions.length && !confirm(`¿Reemplazar las preguntas actuales con el perfil “${profile.name}”?`)) return;
+  try {
+    await replaceQuestions(currentRound.code, profile.entries);
+    setMessage(`Perfil de preguntas “${profile.name}” cargado. La lista anterior fue reemplazada.`);
+  } catch (error) {
+    reportQuestionError(error);
+  }
+}
+
+function saveCurrentQuestionProfile() {
+  const texts = questions.map((question) => question.name);
+  if (!texts.length) { setMessage("Agrega preguntas antes de guardar un perfil.", "error"); return; }
+  const name = prompt("Nombre para este perfil de preguntas", "Mis preguntas");
+  if (!name?.trim()) return;
+  const profile = saveQuestionProfile(name, texts);
+  renderQuestionProfiles(profile.id);
+  setMessage(`Perfil de preguntas “${profile.name}” guardado.`);
+}
+
+function renameSelectedQuestionProfile() {
+  const profile = selectedQuestionProfile();
+  if (!profile || profile.locked) return;
+  const name = prompt("Nuevo nombre del perfil de preguntas", profile.name);
+  if (!name?.trim()) return;
+  renameQuestionProfile(profile.id, name);
+  renderQuestionProfiles(profile.id);
+}
+
+function deleteSelectedQuestionProfile() {
+  const profile = selectedQuestionProfile();
+  if (!profile || profile.locked || !confirm(`¿Eliminar el perfil de preguntas “${profile.name}”?`)) return;
+  deleteQuestionProfile(profile.id);
+  renderQuestionProfiles();
+}
+
+function reportQuestionError(error) {
+  const permissionError = error?.code === "permission-denied" || /permission/i.test(error?.message || "");
+  setMessage(permissionError ? "Firebase bloqueó las preguntas. Publica la versión actual de firestore.rules y vuelve a intentarlo." : (error?.message || "No se pudo actualizar la lista de preguntas."), "error");
+  console.error(error);
 }
 
 async function openSpreadsheet(file) {
@@ -482,6 +548,11 @@ function connectionError() {
   $("#connectionStatus").dataset.status = "offline";
 }
 
+function questionConnectionError(error) {
+  connectionError();
+  reportQuestionError(error);
+}
+
 function stateLabel(status) { return ({ WAITING: "ESPERANDO", READY: "LISTA", SPINNING: "GIRANDO", FINISHED: "FINALIZADA" })[status] || status; }
 function hintFor(status) { return ({ WAITING: "Configura las opciones para comenzar.", SPINNING: "Todos ven el mismo giro.", FINISHED: "Puedes volver a girar o reiniciar la ronda." })[status] || "La ronda está lista."; }
 
@@ -492,16 +563,21 @@ $("#newRoundButton").addEventListener("click", () => { stopWatching(); sessionSt
 $("#addEntryForm").addEventListener("submit", addSingleEntry);
 $("#entryList").addEventListener("click", handleEntryAction);
 $("#addQuestionForm").addEventListener("submit", addSingleQuestion);
-$("#questionList").addEventListener("click", handleQuestionAction);
+$("#questionList").addEventListener("click", (event) => handleQuestionAction(event).catch(reportQuestionError));
 $("#profileSelect").addEventListener("change", updateProfileActions);
 $("#profileLoadButton").addEventListener("click", loadSelectedProfile);
 $("#profileSaveButton").addEventListener("click", saveCurrentProfile);
 $("#profileRenameButton").addEventListener("click", renameSelectedProfile);
 $("#profileDeleteButton").addEventListener("click", deleteSelectedProfile);
+$("#questionProfileSelect").addEventListener("change", updateQuestionProfileActions);
+$("#questionProfileLoadButton").addEventListener("click", loadSelectedQuestionProfile);
+$("#questionProfileSaveButton").addEventListener("click", saveCurrentQuestionProfile);
+$("#questionProfileRenameButton").addEventListener("click", renameSelectedQuestionProfile);
+$("#questionProfileDeleteButton").addEventListener("click", deleteSelectedQuestionProfile);
 $("#bulkOpenButton").addEventListener("click", () => $("#bulkDialog").showModal());
 $("#bulkConfirmButton").addEventListener("click", async (event) => { event.preventDefault(); const names = $("#bulkText").value.split(/\r?\n/).map((name) => name.trim()).filter(Boolean); if (names.length) await addEntries(currentRound.code, names, entries.length); $("#bulkText").value = ""; $("#bulkDialog").close(); });
 $("#bulkQuestionsOpenButton").addEventListener("click", () => $("#bulkQuestionsDialog").showModal());
-$("#bulkQuestionsConfirmButton").addEventListener("click", async (event) => { event.preventDefault(); const text = $("#bulkQuestionsText").value.split(/\r?\n/).map((item) => item.trim()).filter(Boolean); if (text.length) await addQuestions(currentRound.code, text, questions.length); $("#bulkQuestionsText").value = ""; $("#bulkQuestionsDialog").close(); });
+$("#bulkQuestionsConfirmButton").addEventListener("click", async (event) => { event.preventDefault(); const text = $("#bulkQuestionsText").value.split(/\r?\n/).map((item) => item.trim()).filter(Boolean); try { if (text.length) await addQuestions(currentRound.code, text, questions.length); $("#bulkQuestionsText").value = ""; $("#bulkQuestionsDialog").close(); } catch (error) { reportQuestionError(error); } });
 $("#excelFile").addEventListener("change", async (event) => { const file = event.target.files[0]; if (!file) return; try { await openSpreadsheet(file); } catch (error) { setMessage(error.message, "error"); } finally { event.target.value = ""; } });
 $("#importConfirmButton").addEventListener("click", async (event) => { event.preventDefault(); await addEntries(currentRound.code, valuesForColumn(imported, Number($("#importColumn").value)), entries.length); $("#importDialog").close(); });
 $("#sheetsOpenButton").addEventListener("click", () => $("#sheetsDialog").showModal());
