@@ -311,10 +311,6 @@ html, body { background: #1b102b; }
 .papel-race { position: absolute; z-index: 1; top: 0; right: 0; left: 0; height: 24px; background: repeating-linear-gradient(90deg, #ed4a2c 0 52px, #f2ad18 52px 104px, #00a298 104px 156px, #d83b83 156px 208px); clip-path: polygon(0 0, 100% 0, 100% 45%, 96% 100%, 92% 45%, 88% 100%, 84% 45%, 80% 100%, 76% 45%, 72% 100%, 68% 45%, 64% 100%, 60% 45%, 56% 100%, 52% 45%, 48% 100%, 44% 45%, 40% 100%, 36% 45%, 32% 100%, 28% 45%, 24% 100%, 20% 45%, 16% 100%, 12% 45%, 8% 100%, 4% 45%, 0 100%); }
 .race-moon { position: absolute; z-index: 0; top: 9%; right: 7%; width: 74px; height: 74px; border: 3px solid #ffc54a; border-radius: 50%; background: #f7ac29; box-shadow: 0 0 24px rgba(247, 172, 41, .28); }
 .race-moon span { position: absolute; top: 13px; left: 14px; width: 10px; height: 10px; border-radius: 50%; background: rgba(116, 61, 70, .22); box-shadow: 28px 9px 0 rgba(116, 61, 70, .15), 13px 34px 0 3px rgba(116, 61, 70, .13); }
-.race-horizon { position: absolute; z-index: 1; right: 5%; bottom: 27%; display: flex; align-items: end; gap: 21px; }
-.race-horizon i { position: relative; width: 9px; height: 30px; border-radius: 2px; background: #fff2c1; box-shadow: 0 5px 13px rgba(255, 184, 39, .3); }
-.race-horizon i::before { position: absolute; top: -13px; left: 1px; width: 7px; height: 14px; border-radius: 50% 50% 45% 45%; background: #ffad24; box-shadow: 0 0 10px #ff8b18; content: ""; animation: candle-flicker .8s ease-in-out infinite alternate; }
-.race-horizon i:nth-child(2), .race-horizon i:nth-child(5) { height: 20px; }
 .race-track { position: absolute; z-index: 3; inset: 35px 0 72px; }
 .race-runner { position: absolute; z-index: 4; top: var(--runner-top); left: var(--runner-left); width: 86px; transform: translate(-50%, -50%); transform-origin: center bottom; transition: opacity .28s, filter .28s; }
 .runner-name { position: absolute; bottom: 48px; left: 50%; max-width: 118px; overflow: hidden; border: 1px solid rgba(255, 213, 115, .42); border-radius: 4px; background: rgba(24, 10, 39, .88); color: #fff6d9; padding: 4px 7px; font-size: clamp(.52rem, 1vw, .7rem); font-weight: 800; text-align: center; text-overflow: ellipsis; white-space: nowrap; transform: translateX(-50%); }
@@ -355,7 +351,6 @@ html, body { background: #1b102b; }
 @keyframes runner-bob { to { transform: translateY(-4px) rotate(-2deg); } }
 @keyframes runner-legs { from { transform: skewX(-22deg); } to { transform: skewX(22deg); } }
 @keyframes runner-caught { to { opacity: 0; transform: translate(-65%, -50%) rotate(-18deg) scale(.35); } }
-@keyframes candle-flicker { to { opacity: .68; transform: scale(.82) translateY(2px); } }
 @keyframes petal-trail { from { opacity: .9; transform: translateX(0) rotate(0); } to { opacity: 0; transform: translateX(-42px) rotate(220deg); } }
 
 @media (max-width: 760px) {
@@ -375,12 +370,11 @@ html, body { background: #1b102b; }
   .pan-monster { top: 39%; width: 128px; }
   .race-caption { align-items: flex-start; flex-direction: column; justify-content: center; gap: 2px; }
   .race-caption span { text-align: left; }
-  .race-horizon { opacity: .55; }
   .fullscreen-spin { bottom: 16px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .landing-monster, .pan-monster img, .race-stage.is-running .runner-person, .race-stage.is-running .runner-legs, .race-horizon i::before { animation: none !important; }
+  .landing-monster, .pan-monster img, .race-stage.is-running .runner-person, .race-stage.is-running .runner-legs { animation: none !important; }
 }
 
 .questions-panel { border-color: rgba(91, 140, 255, .2); }
@@ -432,7 +426,7 @@ html, body { background: #1b102b; }
 
 .papel-race { background-image: linear-gradient(90deg, rgba(255, 0, 116, .82), rgba(242, 59, 129, .78)), url("assets/ofrenda/papel-recorte.webp"); background-size: auto, 270px; background-position: center, center; background-repeat: no-repeat, repeat-x; box-shadow: 0 8px 24px rgba(227, 57, 128, .25); }
 .race-altar, .race-pan-charm { position: absolute; z-index: 2; pointer-events: none; object-fit: contain; filter: drop-shadow(0 12px 14px rgba(0, 0, 0, .32)); }
-.race-altar { right: 3%; bottom: 48px; width: min(19%, 152px); opacity: .5; }
+.race-altar { right: 3%; bottom: 76px; width: min(20%, 164px); opacity: .68; }
 .race-pan-charm { top: 45px; right: 13%; width: min(13%, 104px); opacity: .78; transform: rotate(7deg); }
 .race-speed-lines { position: absolute; z-index: 3; inset: 20% 0 64px; overflow: hidden; pointer-events: none; }
 .race-speed-lines i { position: absolute; left: -22%; width: 17%; height: 2px; border-radius: 99px; background: linear-gradient(90deg, transparent, rgba(255, 223, 132, .72), transparent); opacity: 0; }
@@ -482,7 +476,7 @@ html, body { background: #1b102b; }
   .ofrenda-copy h2 { max-width: 16ch; font-size: 2rem; }
   .ofrenda-calacas { width: 143px; opacity: .5; }
   .ofrenda-images { min-height: 220px; }
-  .race-altar { right: 1%; width: 100px; opacity: .36; }
+  .race-altar { right: 2%; bottom: 72px; width: 104px; opacity: .58; }
   .race-pan-charm { top: 49px; right: 14%; width: 66px; }
   .race-speed-lines { bottom: 70px; }
 }

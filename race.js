@@ -71,7 +71,6 @@ export function renderRace(container, entries, options = {}) {
     <img class="race-altar" src="assets/ofrenda/altar.webp" alt="" aria-hidden="true" />
     <img class="race-pan-charm" src="assets/ofrenda/pan-floral.webp" alt="" aria-hidden="true" />
     <div class="race-moon" aria-hidden="true"><span></span></div>
-    <div class="race-horizon" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
     <div class="race-speed-lines" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
     <div class="race-track" aria-label="Persecución de participantes">
       ${pack.map((entry, index) => runnerMarkup(entry, index, pack.length)).join("")}
