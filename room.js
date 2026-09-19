@@ -80,7 +80,7 @@ function handleRound(nextRound) {
   }
 }
 
-function isQuestionWheelActive() { return Boolean(round?.questionMode && ["WAITING", "SPINNING", "FINISHED"].includes(round.questionStatus)); }
+function isQuestionWheelActive() { return Boolean(round?.questionMode && ["WAITING", "SPINNING"].includes(round.questionStatus)); }
 function renderWheel() {
   const showingQuestions = isQuestionWheelActive();
   const items = (showingQuestions ? questions : entries).filter((item) => item.enabled);

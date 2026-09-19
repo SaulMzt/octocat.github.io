@@ -205,7 +205,7 @@ function renderQuestions(list) {
 }
 
 function isQuestionWheelActive() {
-  return Boolean(currentRound?.questionMode && ["WAITING", "SPINNING", "FINISHED"].includes(currentRound.questionStatus));
+  return Boolean(currentRound?.questionMode && ["WAITING", "SPINNING"].includes(currentRound.questionStatus));
 }
 
 function renderWheel() {
