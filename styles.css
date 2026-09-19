@@ -414,3 +414,84 @@ html, body { background: #1b102b; }
 .fullscreen-winner.question-result-mode h2.long-question { max-width: 34ch; font-size: clamp(1.45rem, 3.8vw, 3.4rem); }
 .fullscreen-winner.question-result-mode h2.very-long-question { font-size: clamp(1.25rem, 3.1vw, 2.7rem); }
 .fullscreen-winner.question-result-mode .button { align-self: center; }
+
+/* Day of the Dead scene assets and high-motion race details. */
+.sound-preview-button { width: 100%; margin: 8px 0 4px; border-color: rgba(240, 165, 26, .38); color: #6d291a; }
+.sound-preview-button span { color: #d83b83; font-size: 1.05rem; }
+
+.landing-papel-banner { position: absolute; z-index: 0; top: 82px; right: clamp(20px, 7vw, 105px); width: min(360px, 29vw); opacity: .3; pointer-events: none; }
+.ofrenda-gallery { position: relative; z-index: 3; display: grid; grid-template-columns: minmax(260px, .7fr) minmax(430px, 1.3fr); align-items: end; gap: clamp(28px, 6vw, 94px); width: 100%; max-width: 1260px; margin: 58px auto 0; border-top: 1px solid rgba(255, 221, 142, .24); padding: 44px 0 18px; }
+.ofrenda-copy { position: relative; min-height: 260px; overflow: hidden; padding: 12px 12px 0 0; }
+.ofrenda-copy h2 { position: relative; z-index: 1; max-width: 15ch; margin: 0; color: #fff0c8; font-size: clamp(1.8rem, 3.4vw, 3.4rem); line-height: 1.06; }
+.ofrenda-calacas { position: absolute; right: -10px; bottom: -10px; width: min(200px, 42%); opacity: .62; transform: rotate(-3deg); }
+.ofrenda-images { position: relative; min-height: 270px; }
+.ofrenda-images img { position: absolute; max-width: 100%; object-fit: contain; filter: drop-shadow(0 18px 20px rgba(6, 2, 12, .34)); }
+.ofrenda-altar-image { z-index: 1; bottom: 0; left: 2%; width: min(46%, 280px); }
+.ofrenda-pan-image { z-index: 3; right: 22%; bottom: 10px; width: min(35%, 215px); transform: rotate(-4deg); }
+.ofrenda-pan-floral-image { z-index: 2; right: 0; top: 18px; width: min(40%, 230px); transform: rotate(5deg); }
+.ofrenda-corner-image { z-index: 4; right: -1%; bottom: -12px; width: min(44%, 285px); }
+
+.papel-race { background-image: linear-gradient(90deg, rgba(255, 0, 116, .82), rgba(242, 59, 129, .78)), url("assets/ofrenda/papel-recorte.webp"); background-size: auto, 270px; background-position: center, center; background-repeat: no-repeat, repeat-x; box-shadow: 0 8px 24px rgba(227, 57, 128, .25); }
+.race-altar, .race-floral-corner, .race-pan-charm { position: absolute; z-index: 2; pointer-events: none; object-fit: contain; filter: drop-shadow(0 12px 14px rgba(0, 0, 0, .32)); }
+.race-altar { right: 3%; bottom: 48px; width: min(19%, 152px); opacity: .5; }
+.race-floral-corner { left: -18px; bottom: 42px; width: min(28%, 230px); opacity: .88; }
+.race-pan-charm { top: 45px; right: 13%; width: min(13%, 104px); opacity: .78; transform: rotate(7deg); }
+.race-speed-lines { position: absolute; z-index: 3; inset: 20% 0 64px; overflow: hidden; pointer-events: none; }
+.race-speed-lines i { position: absolute; left: -22%; width: 17%; height: 2px; border-radius: 99px; background: linear-gradient(90deg, transparent, rgba(255, 223, 132, .72), transparent); opacity: 0; }
+.race-speed-lines i:nth-child(1) { top: 8%; }
+.race-speed-lines i:nth-child(2) { top: 29%; width: 11%; }
+.race-speed-lines i:nth-child(3) { top: 52%; width: 23%; }
+.race-speed-lines i:nth-child(4) { top: 72%; width: 14%; }
+.race-speed-lines i:nth-child(5) { top: 88%; width: 19%; }
+.race-stage.is-running .race-speed-lines i { animation: speed-line .72s linear infinite; }
+.race-stage.is-running .race-speed-lines i:nth-child(2) { animation-delay: -.26s; }
+.race-stage.is-running .race-speed-lines i:nth-child(3) { animation-delay: -.44s; }
+.race-stage.is-running .race-speed-lines i:nth-child(4) { animation-delay: -.13s; }
+.race-stage.is-running .race-speed-lines i:nth-child(5) { animation-delay: -.57s; }
+.race-stage.is-running .race-track::before { position: absolute; z-index: 1; inset: 0; background: repeating-linear-gradient(105deg, transparent 0 32px, rgba(255, 255, 255, .05) 34px 37px, transparent 39px 76px); content: ""; animation: track-rush .55s linear infinite; pointer-events: none; }
+.race-runner { transform-origin: 50% 100%; }
+.runner-shadow { position: absolute; z-index: 0; bottom: 0; left: 50%; width: 44px; height: 9px; border-radius: 50%; background: rgba(7, 3, 13, .36); filter: blur(2px); transform: translateX(-50%); }
+.runner-dust { position: absolute; z-index: 0; bottom: 5px; left: -13px; width: 9px; height: 9px; border-radius: 50%; background: #f2a51c; opacity: 0; }
+.runner-dust::after { position: absolute; top: 5px; left: -12px; width: 6px; height: 6px; border-radius: 50%; background: #e53d7f; content: ""; }
+.race-stage.is-running .race-runner { animation: runner-sprint .48s ease-in-out var(--runner-delay) infinite alternate; }
+.race-stage.is-running .runner-person { transform-origin: 50% 100%; animation: runner-bob .18s ease-in-out var(--runner-delay) infinite alternate; }
+.race-stage.is-running .runner-legs { animation: runner-legs .14s linear var(--runner-delay) infinite alternate; }
+.race-stage.is-running .runner-arm { transform-origin: 50% 50%; animation: runner-arms .14s linear var(--runner-delay) infinite alternate; }
+.race-stage.is-running .runner-dust { animation: runner-dust .28s linear var(--runner-delay) infinite; }
+.race-stage.is-running .pan-monster { filter: drop-shadow(0 19px 16px rgba(0, 0, 0, .45)) drop-shadow(0 0 15px rgba(255, 137, 38, .25)); }
+.race-stage.is-running .pan-monster img { animation: monster-sprint .28s ease-in-out infinite alternate; }
+.race-stage.is-catching .pan-monster { animation: monster-lunge .42s ease-out; }
+.race-runner.is-caught { opacity: 1; }
+.race-runner.is-caught .runner-dust { opacity: 1; animation: catch-petal .42s ease-out both; }
+.race-runner.is-caught .runner-name { animation: caught-label .34s ease both; }
+.race-stage.has-winner .race-floral-corner { animation: winner-corner 1.15s ease-in-out infinite alternate; }
+.race-stage.has-winner .race-pan-charm { opacity: 1; animation: charm-celebrate .72s ease-in-out infinite alternate; }
+
+@keyframes speed-line { from { opacity: 0; transform: translateX(0); } 20% { opacity: .85; } to { opacity: 0; transform: translateX(740%); } }
+@keyframes track-rush { to { background-position: 94px 0; } }
+@keyframes runner-sprint { to { transform: translateY(calc(var(--runner-sway) * -3px)) rotate(calc(var(--runner-sway) * -1deg)); } }
+@keyframes runner-arms { from { transform: rotate(-32deg); } to { transform: rotate(28deg); } }
+@keyframes runner-dust { 0% { opacity: 0; transform: translate(0, 0) scale(.45); } 42% { opacity: .95; } 100% { opacity: 0; transform: translate(-28px, -9px) scale(1.45); } }
+@keyframes monster-sprint { from { transform: translateY(2px) rotate(-2deg) scale(1.01); } to { transform: translateY(-8px) rotate(2deg) scale(.98); } }
+@keyframes monster-lunge { 35% { transform: translateX(14px) scale(1.13) rotate(-4deg); } 100% { transform: translateX(0) scale(1); } }
+@keyframes catch-petal { from { transform: translate(0, 0) scale(.4); } to { opacity: 0; transform: translate(-42px, -38px) scale(2.2); } }
+@keyframes caught-label { to { opacity: 0; transform: translateY(-12px) scale(.82); } }
+@keyframes winner-corner { to { transform: translateY(-5px) rotate(1deg); } }
+@keyframes charm-celebrate { to { transform: rotate(-6deg) translateY(-7px) scale(1.08); } }
+
+@media (max-width: 760px) {
+  .landing-papel-banner { display: none; }
+  .ofrenda-gallery { grid-template-columns: 1fr; gap: 12px; margin-top: 38px; padding-top: 30px; }
+  .ofrenda-copy { min-height: 188px; }
+  .ofrenda-copy h2 { max-width: 16ch; font-size: 2rem; }
+  .ofrenda-calacas { width: 143px; opacity: .5; }
+  .ofrenda-images { min-height: 220px; }
+  .race-altar { right: 1%; width: 100px; opacity: .36; }
+  .race-floral-corner { bottom: 52px; left: -24px; width: 140px; opacity: .68; }
+  .race-pan-charm { top: 49px; right: 14%; width: 66px; }
+  .race-speed-lines { bottom: 70px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .race-stage.is-running .race-speed-lines i, .race-stage.is-running .race-track::before, .race-stage.is-running .race-runner, .race-stage.is-running .runner-person, .race-stage.is-running .runner-legs, .race-stage.is-running .runner-arm, .race-stage.is-running .runner-dust, .race-stage.is-running .pan-monster img, .race-stage.is-catching .pan-monster, .race-stage.has-winner .race-floral-corner, .race-stage.has-winner .race-pan-charm { animation: none !important; }
+}

@@ -12,7 +12,7 @@ export async function createRound({ title, removeWinner }) {
     const code = newCode(); const ref = doc(db, "rounds", code);
     if ((await getDoc(ref)).exists()) continue;
     const token = crypto.randomUUID().replace(/-/g, "");
-    await setDoc(ref, { code, title: title.trim(), status: "WAITING", createdAt: serverTimestamp(), updatedAt: serverTimestamp(), removeWinner: Boolean(removeWinner), durationMs: 7000, sound: true, music: false, volume: 0.65, confetti: true, questionMode: false, questionStatus: null, questionSpin: null, questionWinner: null, questionSpinCount: 0, adminKeyHash: await hashText(token), spin: null, winner: null, spinCount: 0 });
+    await setDoc(ref, { code, title: title.trim(), status: "WAITING", createdAt: serverTimestamp(), updatedAt: serverTimestamp(), removeWinner: Boolean(removeWinner), durationMs: 7000, sound: true, music: true, volume: 0.72, confetti: true, questionMode: false, questionStatus: null, questionSpin: null, questionWinner: null, questionSpinCount: 0, adminKeyHash: await hashText(token), spin: null, winner: null, spinCount: 0 });
     sessionStorage.setItem(`ronda-admin-${code}`, token); return code;
   }
   throw new Error("No pudimos generar un código único. Inténtalo otra vez.");

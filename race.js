@@ -29,10 +29,14 @@ function runnerMarkup(entry, index, count) {
   const laneCount = Math.min(count, 10);
   const top = 16 + lane * (68 / Math.max(1, laneCount - 1));
   const left = 27 + (index % 4) * 7;
+  const delay = (index % 5) * .035;
+  const sway = index % 2 ? 1 : -1;
   return `
-    <div class="race-runner" data-runner-id="${escapeHtml(entry.id)}" style="--runner-top:${top}%;--runner-left:${left}%;--runner-color:${RUNNER_COLORS[index % RUNNER_COLORS.length]}">
+    <div class="race-runner" data-runner-id="${escapeHtml(entry.id)}" style="--runner-top:${top}%;--runner-left:${left}%;--runner-color:${RUNNER_COLORS[index % RUNNER_COLORS.length]};--runner-delay:${delay}s;--runner-sway:${sway}">
       <span class="runner-name">${escapeHtml(entry.name)}</span>
+      <span class="runner-shadow" aria-hidden="true"></span>
       <span class="runner-person" aria-hidden="true"><i class="runner-head"></i><i class="runner-body"></i><i class="runner-arm"></i><i class="runner-legs"></i></span>
+      <span class="runner-dust" aria-hidden="true"></span>
     </div>`;
 }
 
@@ -46,8 +50,12 @@ export function renderRace(container, entries, options = {}) {
   container.classList.toggle("is-hidden", wasHidden);
   container.innerHTML = `
     <div class="papel-race" aria-hidden="true"></div>
+    <img class="race-altar" src="assets/ofrenda/altar.webp" alt="" aria-hidden="true" />
+    <img class="race-floral-corner" src="assets/ofrenda/floral-corner-v1.webp" alt="" aria-hidden="true" />
+    <img class="race-pan-charm" src="assets/ofrenda/pan-floral.webp" alt="" aria-hidden="true" />
     <div class="race-moon" aria-hidden="true"><span></span></div>
     <div class="race-horizon" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="race-speed-lines" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
     <div class="race-track" aria-label="Persecución de participantes">
       ${pack.map((entry, index) => runnerMarkup(entry, index, pack.length)).join("")}
       <div class="pan-monster" aria-hidden="true"><img src="assets/pan-monster.webp" alt="" /></div>
@@ -90,6 +98,8 @@ export function runRace(container, entries, spin, options = {}) {
     const catchAt = fullDuration * (.42 + (index / Math.max(1, others.length)) * .42) - elapsed;
     const markCaught = () => {
       runner.classList.add("is-caught");
+      container.classList.add("is-catching");
+      window.setTimeout(() => container.classList.remove("is-catching"), 420);
       options.onCatch?.();
     };
     if (catchAt <= 0) markCaught();

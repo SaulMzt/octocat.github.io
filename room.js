@@ -59,10 +59,10 @@ function startRoom() {
 function handleRound(nextRound) {
   if (!nextRound) return;
   round = nextRound;
-  const effectiveVolume = localMuted ? 0 : (localVolume ?? round.volume ?? .65);
+  const effectiveVolume = localMuted ? 0 : (localVolume ?? round.volume ?? .72);
   setMasterVolume(effectiveVolume);
-  setAmbientMusic(Boolean(round.sound && round.music && !localMuted));
-  if (localVolume === undefined) $("#roomVolume").value = Math.round((round.volume ?? .65) * 100);
+  setAmbientMusic(Boolean(round.sound !== false && round.music && !localMuted));
+  if (localVolume === undefined) $("#roomVolume").value = Math.round((round.volume ?? .72) * 100);
   $("#roomTitle").textContent = round.title;
   $("#roomStatus").textContent = round.questionStatus === "WAITING" ? "La persona seleccionada puede girar por una pregunta." : round.questionStatus === "SPINNING" ? "La ruleta de preguntas está girando..." : round.status === "SPINNING" ? "El Pan de Muerto viene detrás del grupo..." : round.status === "FINISHED" ? "Alguien logró escapar." : "Esperando a que el administrador inicie la persecución...";
   renderSelectionStage();
@@ -105,7 +105,7 @@ function renderSelectionStage() {
 function runSpin(spin, questionSpin) {
   if (questionSpin) {
     wheelStage.classList.add("is-spinning");
-    if (round.sound && !localMuted) playWheelSound(spin.durationMs);
+    if (round.sound !== false && !localMuted) playWheelSound(spin.durationMs);
     spinWheel(wheel, spin, () => {
       wheelStage.classList.remove("is-spinning");
       stopWheelSound();
@@ -113,8 +113,8 @@ function runSpin(spin, questionSpin) {
     });
     return;
   }
-  if (round.sound && !localMuted) playRaceSound(spin.durationMs);
-  runRace(raceStage, entries, spin, { onCatch: round.sound && !localMuted ? playEliminationSound : undefined });
+  if (round.sound !== false && !localMuted) playRaceSound(spin.durationMs);
+  runRace(raceStage, entries, spin, { onCatch: round.sound !== false && !localMuted ? playEliminationSound : undefined });
 }
 
 function showWinner(winner, confetti) {
@@ -123,7 +123,7 @@ function showWinner(winner, confetti) {
   $("#roomWinnerDetail").textContent = `Persecución #${winner.spinNumber}`;
   $("#roomWinnerOverlay").classList.remove("is-hidden");
   if (confetti) sprinkle($("#roomConfettiLayer"));
-  if (round.sound && !localMuted) playWinnerSound();
+  if (round.sound !== false && !localMuted) playWinnerSound();
 }
 
 function showQuestionPrompt() {
@@ -159,7 +159,7 @@ function showQuestionResult(question, confetti) {
   setAdaptiveQuestionText($("#roomQuestionResultText"), question.winnerName);
   $("#roomQuestionResult").classList.remove("is-hidden");
   if (confetti) sprinkle($("#roomQuestionConfetti"));
-  if (round.sound && !localMuted) playWinnerSound();
+  if (round.sound !== false && !localMuted) playWinnerSound();
 }
 
 function setAdaptiveQuestionText(element, text) {
@@ -181,7 +181,9 @@ function connectionError() { $("#roomStatus").textContent = "Reconectando..."; }
 $("#roomCloseWinner").addEventListener("click", () => { $("#roomWinnerOverlay").classList.add("is-hidden"); window.requestAnimationFrame(showQuestionPrompt); });
 $("#roomQuestionSpinButton").addEventListener("click", spinQuestion);
 $("#roomCloseQuestionResult").addEventListener("click", () => $("#roomQuestionResult").classList.add("is-hidden"));
-$("#roomAudioToggle").addEventListener("click", async () => { await unlockWheelSound(); localMuted = !localMuted; $("#roomAudioToggle").textContent = localMuted ? "×" : "♪"; $("#roomAudioToggle").setAttribute("aria-label", localMuted ? "Activar audio" : "Silenciar audio"); setMasterVolume(localMuted ? 0 : (localVolume ?? round?.volume ?? .65)); setAmbientMusic(Boolean(round?.sound && round?.music && !localMuted)); });
-$("#roomVolume").addEventListener("input", (event) => { localVolume = Number(event.target.value) / 100; localMuted = false; $("#roomAudioToggle").textContent = "♪"; setMasterVolume(localVolume); });
-document.addEventListener("click", (event) => { if (round?.sound && !localMuted && event.target.closest("button")) playButtonSound(); });
+$("#roomAudioToggle").addEventListener("click", async () => { await unlockWheelSound(); localMuted = !localMuted; $("#roomAudioToggle").textContent = localMuted ? "×" : "♪"; $("#roomAudioToggle").setAttribute("aria-label", localMuted ? "Activar audio" : "Silenciar audio"); setMasterVolume(localMuted ? 0 : (localVolume ?? round?.volume ?? .72)); setAmbientMusic(Boolean(round?.sound !== false && round?.music && !localMuted)); if (!localMuted) playButtonSound(); });
+$("#roomVolume").addEventListener("input", async (event) => { await unlockWheelSound(); localVolume = Number(event.target.value) / 100; localMuted = false; $("#roomAudioToggle").textContent = "♪"; setMasterVolume(localVolume); if (round?.sound !== false) playButtonSound(); });
+document.addEventListener("click", (event) => { if (round?.sound !== false && !localMuted && event.target.closest("button")) playButtonSound(); });
+document.addEventListener("pointerdown", () => unlockWheelSound(), { once: true });
+document.addEventListener("keydown", () => unlockWheelSound(), { once: true });
 window.addEventListener("beforeunload", () => { stopWheelSound(); stopRace(raceStage); setAmbientMusic(false); leavePresence?.(); });
