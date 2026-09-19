@@ -2,9 +2,9 @@ import { ADMIN_PASSWORD_HASH } from "./firebase-config.js";
 import {
   addEntries, addEntry, addQuestion, addQuestions, createRound, finishQuestionSpin,
   finishSpin, getRound, hashText, isRoundAdmin, removeEntry, removeQuestion,
-  reorderEntry, reorderQuestion, replaceEntries, replaceQuestions, resetRound, startQuestionSpin, startSpin, updateEntry, updateQuestion,
+  reorderEntry, reorderQuestion, replaceEntries, replaceQuestions, resetRound, retireHistoricalWinners, startQuestionSpin, startSpin, updateEntry, updateQuestion,
   updateRound, watchEntries, watchPresence, watchQuestions, watchRound
-} from "./round-service.js?v=20260919-3";
+} from "./round-service.js?v=20260919-4";
 import { readPublishedSheet, readSpreadsheet, valuesForColumn } from "./import-service.js";
 import { deleteProfile, deleteQuestionProfile, getProfiles, getQuestionProfiles, renameProfile, renameQuestionProfile, saveProfile, saveQuestionProfile } from "./profiles.js";
 import { playButtonSound, playEliminationSound, playRaceSound, playSoundTest, playWheelSound, playWinnerSound, setAmbientMusic, setMasterVolume, stopWheelSound, unlockWheelSound } from "./wheel-sound.js";
@@ -93,6 +93,7 @@ async function loadRound(code) {
   }
 
   currentRound = foundRound;
+  await retireHistoricalWinners(code).catch(() => {});
   stopWatching();
   $("#roundSetup").classList.add("is-hidden");
   $("#roundDashboard").classList.remove("is-hidden");
