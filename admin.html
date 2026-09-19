@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=20260919-2" />
+    <link rel="stylesheet" href="styles.css?v=20260919-3" />
   </head>
   <body class="site-body admin-body">
     <main id="adminLogin" class="access-screen">
@@ -45,11 +45,6 @@
         <form id="createRoundForm" class="create-round-form">
           <label for="roundTitle">Título de la ronda</label>
           <input id="roundTitle" maxlength="80" placeholder="Sorteo de la escuela" required />
-          <label class="toggle-row" for="removeWinner">
-            <input id="removeWinner" type="checkbox" checked />
-            <span class="toggle-ui" aria-hidden="true"></span>
-            <span>Eliminar participante y pregunta después de cada giro</span>
-          </label>
           <button class="button button-primary button-large" type="submit">Crear ronda <span aria-hidden="true">→</span></button>
           <p id="createMessage" class="form-message" role="status" aria-live="polite"></p>
         </form>
@@ -196,6 +191,6 @@
     <section id="winnerOverlay" class="winner-overlay is-hidden" aria-live="assertive"><div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div><div class="winner-content"><p>✦ SOBREVIVIENTE</p><h2 id="winnerName">Nombre</h2><span id="winnerDetail">Persecución #1</span><button id="closeWinnerButton" class="button button-dark" type="button">Continuar</button></div></section>
     <section id="questionPromptOverlay" class="winner-overlay question-prompt is-hidden" aria-live="assertive"><div class="winner-content"><p>SEGUNDA RULETA</p><h2>Ahora gira por una pregunta</h2><span id="questionPromptDetail">La persona seleccionada elegirá el siguiente tema.</span><button id="questionPromptSpinButton" class="button button-primary" type="button">GIRAR PREGUNTA</button></div></section>
     <section id="questionResultOverlay" class="winner-overlay question-result is-hidden" aria-live="assertive"><div id="questionConfettiLayer" class="confetti-layer" aria-hidden="true"></div><div class="winner-content"><p>💬 PREGUNTA SELECCIONADA</p><h2 id="questionResultText"></h2><button id="closeQuestionResultButton" class="button button-dark" type="button">Continuar</button></div></section>
-    <script type="module" src="admin.js?v=20260919-2"></script>
+    <script type="module" src="admin.js?v=20260919-3"></script>
   </body>
 </html>

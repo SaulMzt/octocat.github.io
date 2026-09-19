@@ -4,12 +4,12 @@ import {
   finishSpin, getRound, hashText, isRoundAdmin, removeEntry, removeQuestion,
   reorderEntry, reorderQuestion, replaceEntries, replaceQuestions, resetRound, startQuestionSpin, startSpin, updateEntry, updateQuestion,
   updateRound, watchEntries, watchPresence, watchQuestions, watchRound
-} from "./round-service.js";
+} from "./round-service.js?v=20260919-3";
 import { readPublishedSheet, readSpreadsheet, valuesForColumn } from "./import-service.js";
 import { deleteProfile, deleteQuestionProfile, getProfiles, getQuestionProfiles, renameProfile, renameQuestionProfile, saveProfile, saveQuestionProfile } from "./profiles.js";
 import { playButtonSound, playEliminationSound, playRaceSound, playSoundTest, playWheelSound, playWinnerSound, setAmbientMusic, setMasterVolume, stopWheelSound, unlockWheelSound } from "./wheel-sound.js";
 import { drawWheel, spinWheel } from "./wheel.js";
-import { renderRace, runRace, showRaceWinner, stopRace } from "./race.js";
+import { renderRace, runRace, showRaceWinner, stopRace } from "./race.js?v=20260919-3";
 
 const $ = (selector) => document.querySelector(selector);
 const wheel = $("#adminWheel");
@@ -73,7 +73,7 @@ async function createNewRound(event) {
   const button = event.submitter;
   button.disabled = true;
   try {
-    const code = await createRound({ title, removeWinner: $("#removeWinner").checked });
+    const code = await createRound({ title });
     sessionStorage.setItem("ronda-current-admin", code);
     await loadRound(code);
   } catch (error) {
@@ -185,8 +185,8 @@ function renderEntries(list) {
   entries = list;
   $("#entryCount").textContent = entries.length;
   $("#entryList").innerHTML = entries.map((entry, index) => `
-    <li class="entry-row ${entry.enabled ? "" : "disabled"}">
-      <button class="entry-enable" data-action="toggle" data-id="${entry.id}" title="${entry.enabled ? "Desactivar" : "Activar"}" aria-label="${entry.enabled ? "Desactivar" : "Activar"}"></button>
+    <li class="entry-row ${entry.enabled ? "" : "disabled"} ${entry.retired ? "retired" : ""}">
+      <button class="entry-enable" data-action="toggle" data-id="${entry.id}" title="${entry.retired ? "Superviviente retirado" : entry.enabled ? "Desactivar" : "Activar"}" aria-label="${entry.retired ? "Superviviente retirado" : entry.enabled ? "Desactivar" : "Activar"}" ${entry.retired ? "disabled" : ""}></button>
       <span>${escapeHtml(entry.name)}</span>
       <div class="entry-actions">
         <button data-action="up" data-index="${index}" class="entry-action" title="Subir" aria-label="Subir">↑</button>
@@ -202,8 +202,8 @@ function renderQuestions(list) {
   questions = list;
   $("#questionCount").textContent = questions.length;
   $("#questionList").innerHTML = questions.map((question, index) => `
-    <li class="question-row ${question.enabled ? "" : "disabled"}">
-      <button class="entry-enable" data-question-action="toggle" data-question-id="${question.id}" title="${question.enabled ? "Desactivar" : "Activar"}" aria-label="${question.enabled ? "Desactivar" : "Activar"}"></button>
+    <li class="question-row ${question.enabled ? "" : "disabled"} ${question.retired ? "retired" : ""}">
+      <button class="entry-enable" data-question-action="toggle" data-question-id="${question.id}" title="${question.retired ? "Pregunta retirada" : question.enabled ? "Desactivar" : "Activar"}" aria-label="${question.retired ? "Pregunta retirada" : question.enabled ? "Desactivar" : "Activar"}" ${question.retired ? "disabled" : ""}></button>
       <span>${escapeHtml(question.name)}</span>
       <div class="entry-actions">
         <button data-question-action="up" data-question-index="${index}" class="entry-action" title="Subir" aria-label="Subir">↑</button>
@@ -255,7 +255,10 @@ async function handleEntryAction(event) {
   if (!button) return;
   const action = button.dataset.action;
   const entry = entries.find((item) => item.id === button.dataset.id);
-  if (action === "toggle" && entry) await updateEntry(currentRound.code, entry.id, { enabled: !entry.enabled });
+  if (action === "toggle" && entry) {
+    if (entry.retired) { setMessage("El superviviente ya no puede volver a participar."); return; }
+    await updateEntry(currentRound.code, entry.id, { enabled: !entry.enabled });
+  }
   if (action === "delete" && entry && confirm(`¿Eliminar a ${entry.name}?`)) await removeEntry(currentRound.code, entry.id);
   if (action === "edit" && entry) {
     const name = prompt("Nombre de la opción", entry.name);
@@ -279,7 +282,10 @@ async function handleQuestionAction(event) {
   if (!button) return;
   const action = button.dataset.questionAction;
   const question = questions.find((item) => item.id === button.dataset.questionId);
-  if (action === "toggle" && question) await updateQuestion(currentRound.code, question.id, { enabled: !question.enabled });
+  if (action === "toggle" && question) {
+    if (question.retired) { setMessage("La pregunta seleccionada ya no puede volver a participar."); return; }
+    await updateQuestion(currentRound.code, question.id, { enabled: !question.enabled });
+  }
   if (action === "delete" && question && confirm("¿Eliminar esta pregunta?")) await removeQuestion(currentRound.code, question.id);
   if (action === "edit" && question) {
     const text = prompt("Texto de la pregunta", question.name);

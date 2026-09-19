@@ -429,12 +429,10 @@ html, body { background: #1b102b; }
 .ofrenda-altar-image { z-index: 1; bottom: 0; left: 2%; width: min(46%, 280px); }
 .ofrenda-pan-image { z-index: 3; right: 22%; bottom: 10px; width: min(35%, 215px); transform: rotate(-4deg); }
 .ofrenda-pan-floral-image { z-index: 2; right: 0; top: 18px; width: min(40%, 230px); transform: rotate(5deg); }
-.ofrenda-corner-image { z-index: 4; right: -1%; bottom: -12px; width: min(44%, 285px); }
 
 .papel-race { background-image: linear-gradient(90deg, rgba(255, 0, 116, .82), rgba(242, 59, 129, .78)), url("assets/ofrenda/papel-recorte.webp"); background-size: auto, 270px; background-position: center, center; background-repeat: no-repeat, repeat-x; box-shadow: 0 8px 24px rgba(227, 57, 128, .25); }
-.race-altar, .race-floral-corner, .race-pan-charm { position: absolute; z-index: 2; pointer-events: none; object-fit: contain; filter: drop-shadow(0 12px 14px rgba(0, 0, 0, .32)); }
+.race-altar, .race-pan-charm { position: absolute; z-index: 2; pointer-events: none; object-fit: contain; filter: drop-shadow(0 12px 14px rgba(0, 0, 0, .32)); }
 .race-altar { right: 3%; bottom: 48px; width: min(19%, 152px); opacity: .5; }
-.race-floral-corner { left: -18px; bottom: 42px; width: min(28%, 230px); opacity: .88; }
 .race-pan-charm { top: 45px; right: 13%; width: min(13%, 104px); opacity: .78; transform: rotate(7deg); }
 .race-speed-lines { position: absolute; z-index: 3; inset: 20% 0 64px; overflow: hidden; pointer-events: none; }
 .race-speed-lines i { position: absolute; left: -22%; width: 17%; height: 2px; border-radius: 99px; background: linear-gradient(90deg, transparent, rgba(255, 223, 132, .72), transparent); opacity: 0; }
@@ -464,7 +462,6 @@ html, body { background: #1b102b; }
 .race-runner.is-caught { opacity: 1; }
 .race-runner.is-caught .runner-dust { opacity: 1; animation: catch-petal .42s ease-out both; }
 .race-runner.is-caught .runner-name { animation: caught-label .34s ease both; }
-.race-stage.has-winner .race-floral-corner { animation: winner-corner 1.15s ease-in-out infinite alternate; }
 .race-stage.has-winner .race-pan-charm { opacity: 1; animation: charm-celebrate .72s ease-in-out infinite alternate; }
 
 @keyframes speed-line { from { opacity: 0; transform: translateX(0); } 20% { opacity: .85; } to { opacity: 0; transform: translateX(740%); } }
@@ -476,7 +473,6 @@ html, body { background: #1b102b; }
 @keyframes monster-lunge { 35% { transform: translateX(14px) scale(1.13) rotate(-4deg); } 100% { transform: translateX(0) scale(1); } }
 @keyframes catch-petal { from { transform: translate(0, 0) scale(.4); } to { opacity: 0; transform: translate(-42px, -38px) scale(2.2); } }
 @keyframes caught-label { to { opacity: 0; transform: translateY(-12px) scale(.82); } }
-@keyframes winner-corner { to { transform: translateY(-5px) rotate(1deg); } }
 @keyframes charm-celebrate { to { transform: rotate(-6deg) translateY(-7px) scale(1.08); } }
 
 @media (max-width: 760px) {
@@ -487,11 +483,10 @@ html, body { background: #1b102b; }
   .ofrenda-calacas { width: 143px; opacity: .5; }
   .ofrenda-images { min-height: 220px; }
   .race-altar { right: 1%; width: 100px; opacity: .36; }
-  .race-floral-corner { bottom: 52px; left: -24px; width: 140px; opacity: .68; }
   .race-pan-charm { top: 49px; right: 14%; width: 66px; }
   .race-speed-lines { bottom: 70px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .race-stage.is-running .race-speed-lines i, .race-stage.is-running .race-track::before, .race-stage.is-running .race-runner, .race-stage.is-running .runner-person, .race-stage.is-running .runner-legs, .race-stage.is-running .runner-arm, .race-stage.is-running .runner-dust, .race-stage.is-running .pan-monster img, .race-stage.is-catching .pan-monster, .race-stage.has-winner .race-floral-corner, .race-stage.has-winner .race-pan-charm { animation: none !important; }
+  .race-stage.is-running .race-speed-lines i, .race-stage.is-running .race-track::before, .race-stage.is-running .race-runner, .race-stage.is-running .runner-person, .race-stage.is-running .runner-legs, .race-stage.is-running .runner-arm, .race-stage.is-running .runner-dust, .race-stage.is-running .pan-monster img, .race-stage.is-catching .pan-monster, .race-stage.has-winner .race-pan-charm { animation: none !important; }
 }
