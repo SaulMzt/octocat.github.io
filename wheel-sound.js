@@ -50,3 +50,28 @@ export function playWheelSound(durationMs = 7000) {
   }
   window.setTimeout(stopWheelSound, durationMs + 180);
 }
+
+export function playWinnerSound() {
+  stopWheelSound();
+  const context = getContext();
+  if (context.state !== "running") return;
+  const startedAt = context.currentTime;
+  const notes = [523.25, 659.25, 783.99, 1046.5];
+
+  notes.forEach((frequency, index) => {
+    const time = startedAt + index * 0.14;
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = index === notes.length - 1 ? "sine" : "triangle";
+    oscillator.frequency.setValueAtTime(frequency, time);
+    gain.gain.setValueAtTime(0.0001, time);
+    gain.gain.exponentialRampToValueAtTime(index === notes.length - 1 ? 0.11 : 0.075, time + 0.018);
+    gain.gain.exponentialRampToValueAtTime(0.0001, time + (index === notes.length - 1 ? 0.58 : 0.16));
+    oscillator.connect(gain).connect(context.destination);
+    oscillator.start(time);
+    oscillator.stop(time + (index === notes.length - 1 ? 0.62 : 0.2));
+    activeNodes.push({ oscillator, gain });
+  });
+
+  window.setTimeout(stopWheelSound, 1250);
+}

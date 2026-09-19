@@ -6,7 +6,7 @@ import {
 } from "./round-service.js";
 import { readPublishedSheet, readSpreadsheet, valuesForColumn } from "./import-service.js";
 import { deleteProfile, getProfiles, renameProfile, saveProfile } from "./profiles.js";
-import { playWheelSound, stopWheelSound, unlockWheelSound } from "./wheel-sound.js";
+import { playWheelSound, playWinnerSound, stopWheelSound, unlockWheelSound } from "./wheel-sound.js";
 import { drawWheel, spinWheel } from "./wheel.js";
 
 const $ = (selector) => document.querySelector(selector);
@@ -283,7 +283,10 @@ function showWinner(winner, confettiEnabled) {
   $("#winnerName").textContent = winner.winnerName;
   $("#winnerDetail").textContent = `Giro #${winner.spinNumber}`;
   $("#winnerOverlay").classList.remove("is-hidden");
-  if (confettiEnabled) sprinkle($("#confettiLayer"));
+  if (confettiEnabled) {
+    sprinkle($("#confettiLayer"));
+    playWinnerSound();
+  }
 }
 
 function sprinkle(layer) {

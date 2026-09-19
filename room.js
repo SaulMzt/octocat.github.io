@@ -1,5 +1,5 @@
 import { getRound, joinPresence, watchEntries, watchPresence, watchRound } from "./round-service.js";
-import { playWheelSound, stopWheelSound, unlockWheelSound } from "./wheel-sound.js";
+import { playWheelSound, playWinnerSound, stopWheelSound, unlockWheelSound } from "./wheel-sound.js";
 import { drawWheel, spinWheel } from "./wheel.js";
 
 const code = new URLSearchParams(location.search).get("code")?.toUpperCase();
@@ -85,7 +85,10 @@ function showWinner(winner, confetti) {
   $("#roomWinnerName").textContent = winner.winnerName;
   $("#roomWinnerDetail").textContent = `Giro #${winner.spinNumber}`;
   $("#roomWinnerOverlay").classList.remove("is-hidden");
-  if (confetti) sprinkle($("#roomConfettiLayer"));
+  if (confetti) {
+    sprinkle($("#roomConfettiLayer"));
+    playWinnerSound();
+  }
 }
 
 function sprinkle(layer) {
