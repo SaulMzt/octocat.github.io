@@ -85,6 +85,19 @@
                 <label class="button button-quiet file-button" for="excelFile">Importar Excel<input id="excelFile" type="file" accept=".xlsx,.xls,.csv" /></label>
               </div>
               <button id="sheetsOpenButton" class="sheets-link" type="button">Conectar Google Sheets <span aria-hidden="true">↗</span></button>
+              <div class="participant-profiles">
+                <label class="field-label" for="profileSelect">Perfil de participantes</label>
+                <select id="profileSelect"></select>
+                <button id="profileLoadButton" class="button participant-profile-button" type="button"><span aria-hidden="true">↓</span> Cargar perfil de participantes</button>
+                <div class="participant-list-actions">
+                  <button id="profileSaveButton" class="button button-quiet" type="button">Guardar lista</button>
+                  <button id="clearEntriesButton" class="button button-quiet danger" type="button">Borrar todo</button>
+                </div>
+                <div class="profile-manage">
+                  <button id="profileRenameButton" class="text-action" type="button">Editar nombre</button>
+                  <button id="profileDeleteButton" class="text-action danger" type="button">Eliminar perfil</button>
+                </div>
+              </div>
               <ul id="entryList" class="entry-list" aria-live="polite"></ul>
             </section>
 
@@ -114,20 +127,6 @@
               <ul id="questionList" class="question-list" aria-live="polite"></ul>
             </section>
 
-            <section class="panel profiles-panel">
-              <div class="panel-heading"><div><p class="kicker">PERFILES</p><h2>Listas rápidas</h2></div></div>
-              <label class="sr-only" for="profileSelect">Perfil de lista</label>
-              <select id="profileSelect"></select>
-              <div class="profile-actions">
-                <button id="profileLoadButton" class="button button-dark" type="button">Cargar perfil</button>
-                <button id="profileSaveButton" class="button button-quiet" type="button">Guardar lista</button>
-              </div>
-              <div class="profile-manage">
-                <button id="profileRenameButton" class="text-action" type="button">Editar nombre</button>
-                <button id="profileDeleteButton" class="text-action danger" type="button">Eliminar perfil</button>
-              </div>
-            </section>
-
             <section class="panel compact-panel">
               <div class="panel-heading"><div><p class="kicker">SALA</p><h2>Participantes conectados</h2></div><span id="presenceCount" class="count-badge">0</span></div>
               <ul id="presenceList" class="presence-list"></ul>
@@ -154,14 +153,7 @@
             <p id="spinMessage" class="form-message center-message" role="status" aria-live="polite"></p>
           </section>
 
-          <aside class="history-column">
-            <section class="panel compact-panel">
-              <div class="panel-heading">
-                <div><p class="kicker">HISTORIAL</p><h2>Ganadores</h2></div>
-                <button id="clearHistoryButton" class="text-action danger" type="button">Borrar</button>
-              </div>
-              <ol id="historyList" class="history-list"></ol>
-            </section>
+          <aside class="settings-column">
             <section class="panel compact-panel settings-panel">
               <p class="kicker">CONFIGURACIÓN</p>
               <label class="toggle-row" for="soundToggle"><input id="soundToggle" type="checkbox" /><span class="toggle-ui" aria-hidden="true"></span><span>Sonido de giro</span></label>

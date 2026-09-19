@@ -1,9 +1,9 @@
 import { ADMIN_PASSWORD_HASH } from "./firebase-config.js";
 import {
-  addEntries, addEntry, addQuestion, addQuestions, clearHistory, createRound, finishQuestionSpin,
-  finishSpin, getRound, hashText, isRoundAdmin, removeEntry, removeHistoryItem, removeQuestion,
+  addEntries, addEntry, addQuestion, addQuestions, createRound, finishQuestionSpin,
+  finishSpin, getRound, hashText, isRoundAdmin, removeEntry, removeQuestion,
   reorderEntry, reorderQuestion, replaceEntries, replaceQuestions, resetRound, startQuestionSpin, startSpin, updateEntry, updateQuestion,
-  updateRound, watchEntries, watchHistory, watchPresence, watchQuestions, watchRound
+  updateRound, watchEntries, watchPresence, watchQuestions, watchRound
 } from "./round-service.js";
 import { readPublishedSheet, readSpreadsheet, valuesForColumn } from "./import-service.js";
 import { deleteProfile, deleteQuestionProfile, getProfiles, getQuestionProfiles, renameProfile, renameQuestionProfile, saveProfile, saveQuestionProfile } from "./profiles.js";
@@ -106,8 +106,7 @@ async function loadRound(code) {
     watchRound(code, handleRoundUpdate, connectionError),
     watchEntries(code, renderEntries, connectionError),
     watchQuestions(code, renderQuestions, questionConnectionError),
-    watchPresence(code, renderPresence, connectionError),
-    watchHistory(code, renderHistory, connectionError)
+    watchPresence(code, renderPresence, connectionError)
   ];
 }
 
@@ -225,15 +224,6 @@ function renderPresence(list) {
   const freshPeople = list.filter((person) => !person.lastSeen?.toMillis || Date.now() - person.lastSeen.toMillis() < 70000);
   $("#presenceCount").textContent = freshPeople.length;
   $("#presenceList").innerHTML = freshPeople.map((person) => `<li><span></span>${escapeHtml(person.name)}</li>`).join("") || "<li class=\"empty-list\">Todavía no hay participantes.</li>";
-}
-
-function renderHistory(list) {
-  $("#historyList").innerHTML = list.map((winner) => `
-    <li>
-      <span class="history-trophy">🏆</span>
-      <div><strong>${escapeHtml(winner.winnerName)}</strong><small>Giro #${winner.spinNumber}${winner.createdAt ? ` · ${winner.createdAt.toDate().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : ""}</small></div>
-      <button class="history-delete" data-history-id="${winner.id}" title="Eliminar del historial" aria-label="Eliminar ${escapeHtml(winner.winnerName)} del historial">×</button>
-    </li>`).join("") || "<li class=\"empty-list\">Los ganadores aparecerán aquí.</li>";
 }
 
 async function addSingleEntry(event) {
@@ -567,6 +557,12 @@ $("#questionList").addEventListener("click", (event) => handleQuestionAction(eve
 $("#profileSelect").addEventListener("change", updateProfileActions);
 $("#profileLoadButton").addEventListener("click", loadSelectedProfile);
 $("#profileSaveButton").addEventListener("click", saveCurrentProfile);
+$("#clearEntriesButton").addEventListener("click", async () => {
+  if (!entries.length) { setMessage("La lista ya está vacía."); return; }
+  if (!confirm("¿Borrar todos los participantes y opciones? Esta acción no se puede deshacer.")) return;
+  await replaceEntries(currentRound.code, []);
+  setMessage("Se borraron todos los participantes y opciones.");
+});
 $("#profileRenameButton").addEventListener("click", renameSelectedProfile);
 $("#profileDeleteButton").addEventListener("click", deleteSelectedProfile);
 $("#questionProfileSelect").addEventListener("change", updateQuestionProfileActions);
@@ -584,8 +580,6 @@ $("#sheetsOpenButton").addEventListener("click", () => $("#sheetsDialog").showMo
 $("#sheetPreviewButton").addEventListener("click", async (event) => { event.preventDefault(); try { imported = await readPublishedSheet($("#sheetUrl").value.trim()); $("#sheetsDialog").close(); openImportDialog(); } catch (error) { $("#sheetMessage").textContent = error.message; $("#sheetMessage").dataset.tone = "error"; } });
 $("#spinButton").addEventListener("click", startRoundSpin);
 $("#resetRoundButton").addEventListener("click", async () => { if (confirm("¿Reiniciar el estado de la ronda? La lista de opciones se conserva.")) await resetRound(currentRound.code); });
-$("#historyList").addEventListener("click", async (event) => { const button = event.target.closest("[data-history-id]"); if (button && confirm("¿Eliminar este ganador del historial?")) await removeHistoryItem(currentRound.code, button.dataset.historyId); });
-$("#clearHistoryButton").addEventListener("click", async () => { if (confirm("¿Borrar todo el historial de ganadores? Esta acción no se puede deshacer.")) await clearHistory(currentRound.code); });
 $("#durationSelect").addEventListener("change", (event) => updateRound(currentRound.code, { durationMs: Number(event.target.value) }));
 $("#soundToggle").addEventListener("change", async (event) => { currentRound.sound = event.target.checked; await unlockWheelSound(); await updateRound(currentRound.code, { sound: event.target.checked }); if (event.target.checked) playWheelSound(520); });
 $("#confettiToggle").addEventListener("change", (event) => updateRound(currentRound.code, { confetti: event.target.checked }));
