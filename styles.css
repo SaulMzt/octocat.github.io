@@ -247,6 +247,142 @@ textarea { resize: vertical; }
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
 
+/* Día de Muertos experience */
+:root {
+  --navy: #241234;
+  --ink: #2c1937;
+  --muted: #765f75;
+  --paper: #fff8e8;
+  --panel: rgba(255, 250, 235, .92);
+  --line: #e4cfae;
+  --coral: #e94b2b;
+  --coral-dark: #c93622;
+  --mint: #009b8e;
+  --gold: #f0a51a;
+  --blue: #7b3fc6;
+}
+
+html, body { background: #1b102b; }
+.site-body { background: #1b102b; }
+.site-body::before { background-color: #1b102b; background-image: linear-gradient(rgba(255, 179, 26, .04) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 179, 26, .04) 1px, transparent 1px); background-size: 42px 42px; }
+.site-body::after { position: fixed; z-index: 30; top: 0; right: 0; left: 0; height: 18px; background: repeating-linear-gradient(90deg, #ef4d2f 0 42px, #f4af1b 42px 84px, #0ba5a0 84px 126px, #d74393 126px 168px, #7541bd 168px 210px); clip-path: polygon(0 0, 100% 0, 100% 52%, 98% 100%, 96% 52%, 94% 100%, 92% 52%, 90% 100%, 88% 52%, 86% 100%, 84% 52%, 82% 100%, 80% 52%, 78% 100%, 76% 52%, 74% 100%, 72% 52%, 70% 100%, 68% 52%, 66% 100%, 64% 52%, 62% 100%, 60% 52%, 58% 100%, 56% 52%, 54% 100%, 52% 52%, 50% 100%, 48% 52%, 46% 100%, 44% 52%, 42% 100%, 40% 52%, 38% 100%, 36% 52%, 34% 100%, 32% 52%, 30% 100%, 28% 52%, 26% 100%, 24% 52%, 22% 100%, 20% 52%, 18% 100%, 16% 52%, 14% 100%, 12% 52%, 10% 100%, 8% 52%, 6% 100%, 4% 52%, 2% 100%, 0 52%); content: ""; pointer-events: none; }
+
+.brand { color: #fff4d5; }
+.brand-mark { border-color: var(--gold); border-right-color: #e1498d; box-shadow: 0 0 16px rgba(240, 165, 26, .35); }
+.text-link { color: #ffe6a3; }
+.text-link:hover { color: #fff; }
+.kicker { color: #d83b83; }
+.landing h1, .setup-intro h1, .access-card h1 { color: #fff3d2; }
+.lead, .setup-intro p:last-child { color: #dbc6dc; }
+.landing { background-image: linear-gradient(90deg, rgba(27, 16, 43, .98) 0 46%, rgba(27, 16, 43, .72) 72%, rgba(27, 16, 43, .94) 100%); }
+.landing::after { right: -8vw; bottom: -26vw; border-color: rgba(240, 165, 26, .2); box-shadow: 0 0 0 70px rgba(216, 59, 131, .04), 0 0 0 140px rgba(0, 155, 142, .035); }
+.landing-monster { position: absolute; z-index: 0; right: clamp(-190px, -8vw, -40px); bottom: 2vh; width: min(58vw, 780px); max-height: 78vh; object-fit: contain; filter: drop-shadow(0 28px 38px rgba(0, 0, 0, .38)); opacity: .76; pointer-events: none; animation: monster-idle 2.2s ease-in-out infinite; }
+.landing-grid, .feature-strip, .topbar { position: relative; z-index: 2; }
+.feature-strip { color: #cdb9d1; }
+.feature-strip span { color: var(--gold); }
+
+.join-card, .panel, .access-card, .create-round-form { border-color: rgba(118, 73, 134, .25); background: rgba(255, 249, 230, .94); box-shadow: 0 20px 54px rgba(7, 3, 18, .32); }
+.join-card h2, .panel h2, .dialog-card h2, .access-card h1 { color: var(--navy); }
+.access-card .brand { color: var(--navy); }
+.app-header .brand { color: #fff1cf; }
+.admin-layout, .room-layout { background: linear-gradient(180deg, rgba(43, 20, 57, .35), rgba(16, 9, 29, .5)); }
+.round-banner h1, .room-heading h1 { color: #fff1cf; }
+.room-heading > p:last-child, .stage-meta { color: #dec9df; }
+.share-code { border-color: rgba(240, 165, 26, .28); background: rgba(255, 248, 230, .95); }
+.button-primary, .button-spin { background: #e94b2b; color: #fff; box-shadow: 0 12px 28px rgba(233, 75, 43, .3); }
+.button-primary:hover, .button-spin:not(:disabled):hover { background: #c93622; }
+.button-dark { background: #2b153c; }
+.participant-profile-button { background: #7641bd; }
+.participant-profile-button:hover { background: #6030a4; }
+.toggle-row input:checked + .toggle-ui { background: #009b8e; }
+.volume-range { height: 6px; border: 0; background: #dec7a4; padding: 0; accent-color: #e94b2b; }
+
+.stage-panel { min-height: 690px; border-color: rgba(240, 165, 26, .2); background: #140b24; box-shadow: inset 0 0 70px rgba(95, 35, 104, .2), 0 20px 50px rgba(6, 2, 15, .24); }
+.stage-panel::before { background-image: linear-gradient(180deg, rgba(116, 65, 189, .08), transparent 48%, rgba(240, 165, 26, .05)); }
+.state-label { background: #ffe8a8; color: #7d4210; }
+.spin-controls { margin-top: 16px; }
+.wheel-stage::before { border-color: rgba(240, 165, 26, .35); box-shadow: 0 0 0 20px rgba(216, 59, 131, .04), 0 0 0 40px rgba(0, 155, 142, .035); }
+.wheel-pointer { border-top-color: #f0a51a; }
+.wheel-hub { border-color: rgba(240, 165, 26, .25); background: #2b153c; color: #fff1cf; }
+
+.wheel-dock, .room-selection-dock { display: grid; width: 100%; flex: 1; place-items: center; }
+.race-stage { position: relative; width: min(100%, 880px); height: clamp(440px, 58vh, 590px); overflow: hidden; border: 1px solid rgba(240, 165, 26, .25); border-radius: 8px; background: linear-gradient(180deg, #24133e 0 60%, #482348 60% 72%, #201128 72%); box-shadow: inset 0 -55px 90px rgba(0, 0, 0, .25); isolation: isolate; }
+.race-stage::after { position: absolute; z-index: 0; right: 0; bottom: 22%; left: 0; height: 2px; background: rgba(255, 197, 65, .38); box-shadow: 0 24px 0 rgba(255, 197, 65, .11), 0 48px 0 rgba(255, 197, 65, .08); content: ""; }
+.papel-race { position: absolute; z-index: 1; top: 0; right: 0; left: 0; height: 24px; background: repeating-linear-gradient(90deg, #ed4a2c 0 52px, #f2ad18 52px 104px, #00a298 104px 156px, #d83b83 156px 208px); clip-path: polygon(0 0, 100% 0, 100% 45%, 96% 100%, 92% 45%, 88% 100%, 84% 45%, 80% 100%, 76% 45%, 72% 100%, 68% 45%, 64% 100%, 60% 45%, 56% 100%, 52% 45%, 48% 100%, 44% 45%, 40% 100%, 36% 45%, 32% 100%, 28% 45%, 24% 100%, 20% 45%, 16% 100%, 12% 45%, 8% 100%, 4% 45%, 0 100%); }
+.race-moon { position: absolute; z-index: 0; top: 9%; right: 7%; width: 74px; height: 74px; border: 3px solid #ffc54a; border-radius: 50%; background: #f7ac29; box-shadow: 0 0 24px rgba(247, 172, 41, .28); }
+.race-moon span { position: absolute; top: 13px; left: 14px; width: 10px; height: 10px; border-radius: 50%; background: rgba(116, 61, 70, .22); box-shadow: 28px 9px 0 rgba(116, 61, 70, .15), 13px 34px 0 3px rgba(116, 61, 70, .13); }
+.race-horizon { position: absolute; z-index: 1; right: 5%; bottom: 27%; display: flex; align-items: end; gap: 21px; }
+.race-horizon i { position: relative; width: 9px; height: 30px; border-radius: 2px; background: #fff2c1; box-shadow: 0 5px 13px rgba(255, 184, 39, .3); }
+.race-horizon i::before { position: absolute; top: -13px; left: 1px; width: 7px; height: 14px; border-radius: 50% 50% 45% 45%; background: #ffad24; box-shadow: 0 0 10px #ff8b18; content: ""; animation: candle-flicker .8s ease-in-out infinite alternate; }
+.race-horizon i:nth-child(2), .race-horizon i:nth-child(5) { height: 20px; }
+.race-track { position: absolute; z-index: 3; inset: 35px 0 72px; }
+.race-runner { position: absolute; z-index: 4; top: var(--runner-top); left: var(--runner-left); width: 86px; transform: translate(-50%, -50%); transform-origin: center bottom; transition: opacity .28s, filter .28s; }
+.runner-name { position: absolute; bottom: 48px; left: 50%; max-width: 118px; overflow: hidden; border: 1px solid rgba(255, 213, 115, .42); border-radius: 4px; background: rgba(24, 10, 39, .88); color: #fff6d9; padding: 4px 7px; font-size: clamp(.52rem, 1vw, .7rem); font-weight: 800; text-align: center; text-overflow: ellipsis; white-space: nowrap; transform: translateX(-50%); }
+.runner-person { position: relative; display: block; width: 38px; height: 49px; margin: auto; filter: drop-shadow(0 5px 4px rgba(0, 0, 0, .28)); }
+.runner-head { position: absolute; z-index: 3; top: 0; left: 11px; width: 17px; height: 17px; border: 2px solid #2b153c; border-radius: 50%; background: #f5bd88; }
+.runner-head::after { position: absolute; top: 6px; left: 3px; width: 2px; height: 2px; border-radius: 50%; background: #2b153c; box-shadow: 7px 0 #2b153c; content: ""; }
+.runner-body { position: absolute; z-index: 2; top: 15px; left: 8px; width: 23px; height: 24px; border: 2px solid #2b153c; border-radius: 7px 7px 4px 4px; background: var(--runner-color); }
+.runner-arm { position: absolute; z-index: 1; top: 20px; left: 2px; width: 35px; height: 7px; border-radius: 8px; background: #f5bd88; transform: rotate(-12deg); }
+.runner-legs { position: absolute; top: 36px; left: 10px; width: 8px; height: 14px; border-radius: 0 0 7px 7px; background: #f5bd88; box-shadow: 13px 0 #f5bd88; }
+.pan-monster { position: absolute; z-index: 6; top: 34%; left: -5%; width: clamp(150px, 25%, 230px); filter: drop-shadow(0 16px 12px rgba(0, 0, 0, .38)); }
+.pan-monster img { display: block; width: 100%; animation: monster-idle .65s ease-in-out infinite alternate; }
+.pan-monster::after { position: absolute; bottom: 12%; left: 0; width: 7px; height: 4px; border-radius: 70% 20% 70% 20%; background: #f3a51d; box-shadow: -18px -12px #e64b2c, -34px 8px #d83b83, -49px -8px #00a298, -66px 13px #f3a51d; content: ""; opacity: 0; }
+.race-stage.is-running .pan-monster::after { animation: petal-trail .8s linear infinite; }
+.race-caption { position: absolute; z-index: 8; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; border-top: 1px solid rgba(240, 165, 26, .24); background: rgba(18, 8, 31, .9); color: #fff0c8; padding: 11px 17px; }
+.race-caption strong { font-size: clamp(.82rem, 1.7vw, 1.05rem); }
+.race-caption span { color: #cfb7d2; font-size: clamp(.62rem, 1.2vw, .74rem); text-align: right; }
+.race-stage.is-running .runner-person { animation: runner-bob .22s ease-in-out infinite alternate; }
+.race-stage.is-running .runner-legs { animation: runner-legs .18s linear infinite alternate; }
+.race-runner.is-caught { opacity: 0; filter: blur(3px) grayscale(.6); animation: runner-caught .35s ease forwards; }
+.race-runner.is-survivor { z-index: 9; filter: drop-shadow(0 0 12px #ffc43d); }
+.race-runner.is-survivor .runner-name { border-color: #ffc43d; background: #6b2d17; color: #fff; }
+.race-runner.is-survivor::after { display: block; margin: 7px auto 0; color: #ffc43d; font-family: "DM Mono", monospace; font-size: .63rem; font-weight: 800; text-align: center; content: "SOBREVIVIENTE"; }
+
+.room-stage { max-width: 1050px; margin-top: 30px; }
+.room-selection-dock { margin: 20px auto; }
+.room-selection-dock .race-stage { width: min(94vw, 960px); }
+.room-audio-controls { display: flex; align-items: center; gap: 10px; }
+.room-volume { width: 110px; }
+.connected-panel { border-color: rgba(240, 165, 26, .25); background: rgba(255, 249, 230, .94); }
+.wheel-fullscreen { background: #130a22; }
+.fullscreen-wheel-mount:has(.race-stage) { width: min(94vw, 1200px); height: min(82vh, 720px); }
+.fullscreen-wheel-mount .race-stage { width: 100%; height: 100%; }
+.fullscreen-winner { background: rgba(23, 10, 37, .92); }
+.winner-overlay { background: rgba(25, 10, 37, .92); }
+.winner-content p { color: #ffc43d; }
+
+@keyframes monster-idle { to { transform: translateY(-6px) rotate(1.5deg); } }
+@keyframes runner-bob { to { transform: translateY(-4px) rotate(-2deg); } }
+@keyframes runner-legs { from { transform: skewX(-22deg); } to { transform: skewX(22deg); } }
+@keyframes runner-caught { to { opacity: 0; transform: translate(-65%, -50%) rotate(-18deg) scale(.35); } }
+@keyframes candle-flicker { to { opacity: .68; transform: scale(.82) translateY(2px); } }
+@keyframes petal-trail { from { opacity: .9; transform: translateX(0) rotate(0); } to { opacity: 0; transform: translateX(-42px) rotate(220deg); } }
+
+@media (max-width: 760px) {
+  .site-body::after { height: 12px; }
+  .landing { padding-top: 30px; }
+  .landing-monster { right: -95px; bottom: 12%; width: 92vw; opacity: .2; }
+  .landing h1 { font-size: clamp(2.55rem, 12vw, 4rem); }
+  .feature-strip { color: #d8c8dc; }
+  .app-header .brand { font-size: .93rem; }
+  .room-audio-controls { gap: 6px; }
+  .room-volume { width: 72px; }
+  .race-stage { height: 430px; }
+  .race-track { top: 30px; }
+  .race-runner { width: 60px; }
+  .runner-name { bottom: 43px; max-width: 82px; padding: 3px 4px; font-size: .52rem; }
+  .runner-person { transform: scale(.85); }
+  .pan-monster { top: 39%; width: 128px; }
+  .race-caption { align-items: flex-start; flex-direction: column; justify-content: center; gap: 2px; }
+  .race-caption span { text-align: left; }
+  .race-horizon { opacity: .55; }
+  .fullscreen-spin { bottom: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-monster, .pan-monster img, .race-stage.is-running .runner-person, .race-stage.is-running .runner-legs, .race-horizon i::before { animation: none !important; }
+}
+
 .questions-panel { border-color: rgba(91, 140, 255, .2); }
 .question-entry-form { display: grid; gap: 8px; }
 .question-entry-form textarea { min-height: 76px; font-size: .82rem; line-height: 1.45; }

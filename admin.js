@@ -7,12 +7,14 @@ import {
 } from "./round-service.js";
 import { readPublishedSheet, readSpreadsheet, valuesForColumn } from "./import-service.js";
 import { deleteProfile, deleteQuestionProfile, getProfiles, getQuestionProfiles, renameProfile, renameQuestionProfile, saveProfile, saveQuestionProfile } from "./profiles.js";
-import { playWheelSound, playWinnerSound, stopWheelSound, unlockWheelSound } from "./wheel-sound.js";
+import { playButtonSound, playEliminationSound, playRaceSound, playWheelSound, playWinnerSound, setAmbientMusic, setMasterVolume, stopWheelSound, unlockWheelSound } from "./wheel-sound.js";
 import { drawWheel, spinWheel } from "./wheel.js";
+import { renderRace, runRace, showRaceWinner, stopRace } from "./race.js";
 
 const $ = (selector) => document.querySelector(selector);
 const wheel = $("#adminWheel");
 const wheelStage = $("#adminWheelStage");
+const raceStage = $("#adminRaceStage");
 const wheelDock = $("#wheelDock");
 const fullscreenOverlay = $("#wheelFullscreen");
 const fullscreenMount = $("#fullscreenWheelMount");
@@ -98,6 +100,8 @@ async function loadRound(code) {
   $("#dashboardTitle").textContent = foundRound.title;
   $("#durationSelect").value = foundRound.durationMs || 7000;
   $("#soundToggle").checked = Boolean(foundRound.sound);
+  $("#musicToggle").checked = Boolean(foundRound.music);
+  $("#volumeRange").value = Math.round((foundRound.volume ?? .65) * 100);
   $("#confettiToggle").checked = foundRound.confetti !== false;
   $("#questionModeToggle").checked = Boolean(foundRound.questionMode);
   setQuestionPanelVisible(Boolean(foundRound.questionMode));
@@ -118,13 +122,18 @@ function handleRoundUpdate(round) {
   const questionWaiting = round.questionMode && round.questionStatus === "WAITING";
   const questionSpinning = round.questionStatus === "SPINNING";
   $("#spinButton").disabled = round.status === "SPINNING" || questionSpinning;
-  $("#spinButton").textContent = questionWaiting ? "GIRAR PREGUNTA" : "GIRAR RULETA";
+  $("#spinButton").textContent = questionWaiting ? "GIRAR PREGUNTA" : "INICIAR PERSECUCIÓN";
   $("#fullscreenSpinButton").disabled = round.status === "SPINNING" || questionSpinning;
-  $("#fullscreenSpinButton").textContent = questionWaiting ? "GIRAR PREGUNTA" : "GIRAR RULETA";
+  $("#fullscreenSpinButton").textContent = questionWaiting ? "GIRAR PREGUNTA" : "INICIAR PERSECUCIÓN";
   $("#stageHint").textContent = hintFor(round.status);
   $("#questionModeToggle").checked = Boolean(round.questionMode);
+  $("#soundToggle").checked = Boolean(round.sound);
+  $("#musicToggle").checked = Boolean(round.music);
+  $("#volumeRange").value = Math.round((round.volume ?? .65) * 100);
+  setMasterVolume(round.volume ?? .65);
+  setAmbientMusic(Boolean(round.sound && round.music));
   setQuestionPanelVisible(Boolean(round.questionMode));
-  renderWheel();
+  renderSelectionStage();
 
   if (round.status === "SPINNING" && round.spin && spinStarted !== `${round.spin.spinNumber}-spinning`) {
     spinStarted = `${round.spin.spinNumber}-spinning`;
@@ -152,12 +161,13 @@ function handleRoundUpdate(round) {
 }
 
 function runSpin(spin, soundEnabled, completeRound) {
-  wheelStage.classList.add("is-spinning");
-  if (soundEnabled) playWheelSound(spin.durationMs);
-  spinWheel(wheel, spin, () => {
-    wheelStage.classList.remove("is-spinning");
-    stopWheelSound();
-    if (completeRound) finishAfterSpin();
+  if (soundEnabled) playRaceSound(spin.durationMs);
+  runRace(raceStage, entries, spin, {
+    onCatch: soundEnabled ? playEliminationSound : undefined,
+    onFinish: () => {
+      stopWheelSound();
+      if (completeRound) finishAfterSpin();
+    }
   });
 }
 
@@ -185,6 +195,7 @@ function renderEntries(list) {
         <button data-action="delete" data-id="${entry.id}" class="entry-action delete" title="Eliminar" aria-label="Eliminar">×</button>
       </div>
     </li>`).join("") || "<li class=\"empty-list\">Aún no hay opciones.</li>";
+  renderSelectionStage();
 }
 
 function renderQuestions(list) {
@@ -201,19 +212,26 @@ function renderQuestions(list) {
         <button data-question-action="delete" data-question-id="${question.id}" class="entry-action delete" title="Eliminar" aria-label="Eliminar">×</button>
       </div>
     </li>`).join("") || "<li class=\"empty-list\">Añade las preguntas para la segunda ruleta.</li>";
-  renderWheel();
+  renderSelectionStage();
 }
 
 function isQuestionWheelActive() {
   return Boolean(currentRound?.questionMode && ["WAITING", "SPINNING"].includes(currentRound.questionStatus));
 }
 
-function renderWheel() {
+function renderSelectionStage() {
   const showingQuestions = isQuestionWheelActive();
-  const items = (showingQuestions ? questions : entries).filter((item) => item.enabled);
-  drawWheel(wheel, items);
-  $("#wheelCount").textContent = items.length;
-  $("#wheelKind").textContent = showingQuestions ? "preguntas" : "opciones";
+  wheelStage.classList.toggle("is-hidden", !showingQuestions);
+  raceStage.classList.toggle("is-hidden", showingQuestions);
+  if (showingQuestions) {
+    const items = questions.filter((item) => item.enabled);
+    drawWheel(wheel, items);
+    $("#wheelCount").textContent = items.length;
+    $("#wheelKind").textContent = "preguntas";
+  } else if (!raceStage.classList.contains("is-running")) {
+    renderRace(raceStage, entries);
+  }
+  syncFullscreenStage();
 }
 
 function setQuestionPanelVisible(show) {
@@ -409,12 +427,15 @@ async function startRoundSpin() {
   }
   try {
     await unlockWheelSound();
-    setMessage("Preparando el giro para toda la sala...");
+    setMessage("Preparando la persecución para toda la sala...");
     const spin = await startSpin(currentRound, entries);
-    spinStarted = `${spin.spinNumber}-spinning`;
-    runSpin(spin, currentRound.sound, true);
+    const spinKey = `${spin.spinNumber}-spinning`;
+    if (spinStarted !== spinKey) {
+      spinStarted = spinKey;
+      runSpin(spin, currentRound.sound, true);
+    }
   } catch (error) {
-    setMessage(error.message || "No se pudo iniciar el giro.", "error");
+    setMessage(error.message || "No se pudo iniciar la persecución.", "error");
   }
 }
 
@@ -439,8 +460,11 @@ async function startQuestionRoundSpin() {
     await unlockWheelSound();
     $("#questionPromptOverlay").classList.add("is-hidden");
     const questionSpin = await startQuestionSpin(currentRound, questions);
-    questionSpinStarted = `${questionSpin.spinNumber}-spinning`;
-    runQuestionSpin(questionSpin, currentRound.sound);
+    const spinKey = `${questionSpin.spinNumber}-spinning`;
+    if (questionSpinStarted !== spinKey) {
+      questionSpinStarted = spinKey;
+      runQuestionSpin(questionSpin, currentRound.sound);
+    }
   } catch (error) {
     setMessage(error.message || "No se pudo iniciar la ruleta de preguntas.", "error");
   }
@@ -455,22 +479,21 @@ function finishQuestionAfterSpin() {
 }
 
 function showWinner(winner, confettiEnabled) {
-  if (fullscreenOverlay.contains(wheelStage)) {
-    showFullscreenResult("TENEMOS GANADOR", winner.winnerName, "Continuar", "winner", confettiEnabled);
+  showRaceWinner(raceStage, entries, winner);
+  if (isSelectionFullscreen()) {
+    showFullscreenResult("SOBREVIVIENTE", winner.winnerName, "Continuar", "winner", confettiEnabled);
     return;
   }
   $("#winnerName").textContent = winner.winnerName;
-  $("#winnerDetail").textContent = `Giro #${winner.spinNumber}`;
+  $("#winnerDetail").textContent = `Persecución #${winner.spinNumber}`;
   $("#winnerOverlay").classList.remove("is-hidden");
-  if (confettiEnabled) {
-    sprinkle($("#confettiLayer"));
-    playWinnerSound();
-  }
+  if (confettiEnabled) sprinkle($("#confettiLayer"));
+  if (currentRound.sound) playWinnerSound();
 }
 
 function showQuestionPrompt() {
   if (!currentRound?.questionMode || currentRound.questionStatus !== "WAITING") return;
-  if (fullscreenOverlay.contains(wheelStage)) {
+  if (isSelectionFullscreen()) {
     showFullscreenResult("SEGUNDA RULETA", "Ahora gira por una pregunta", "GIRAR PREGUNTA", "question-prompt", false);
     return;
   }
@@ -479,16 +502,14 @@ function showQuestionPrompt() {
 }
 
 function showQuestionResult(question, confettiEnabled) {
-  if (fullscreenOverlay.contains(wheelStage)) {
+  if (isSelectionFullscreen()) {
     showFullscreenResult("PREGUNTA SELECCIONADA", question.winnerName, "Continuar", "question-result", confettiEnabled);
     return;
   }
   setAdaptiveQuestionText($("#questionResultText"), question.winnerName);
   $("#questionResultOverlay").classList.remove("is-hidden");
-  if (confettiEnabled) {
-    sprinkle($("#questionConfettiLayer"));
-    playWinnerSound();
-  }
+  if (confettiEnabled) sprinkle($("#questionConfettiLayer"));
+  if (currentRound.sound) playWinnerSound();
 }
 
 function showFullscreenResult(label, text, buttonText, mode, confettiEnabled) {
@@ -502,10 +523,8 @@ function showFullscreenResult(label, text, buttonText, mode, confettiEnabled) {
   $("#fullscreenWinnerContinue").textContent = buttonText;
   $("#fullscreenWinnerContinue").dataset.mode = mode;
   $("#fullscreenWinner").classList.remove("is-hidden");
-  if (confettiEnabled) {
-    sprinkle($("#fullscreenConfettiLayer"));
-    playWinnerSound();
-  }
+  if (confettiEnabled) sprinkle($("#fullscreenConfettiLayer"));
+  if (currentRound.sound) playWinnerSound();
 }
 
 function setAdaptiveQuestionText(element, text) {
@@ -532,13 +551,26 @@ function copyText(text) {
 
 function openFullscreenWheel() {
   fullscreenOverlay.classList.remove("is-hidden");
-  fullscreenMount.append(wheelStage);
+  syncFullscreenStage();
   document.body.classList.add("wheel-mode");
   fullscreenOverlay.requestFullscreen?.().catch(() => {});
 }
 
+function isSelectionFullscreen() {
+  return fullscreenOverlay.contains(wheelStage) || fullscreenOverlay.contains(raceStage);
+}
+
+function syncFullscreenStage() {
+  if (fullscreenOverlay.classList.contains("is-hidden")) return;
+  const desiredStage = isQuestionWheelActive() ? wheelStage : raceStage;
+  const otherStage = desiredStage === wheelStage ? raceStage : wheelStage;
+  if (fullscreenMount.contains(otherStage)) wheelDock.append(otherStage);
+  if (!fullscreenMount.contains(desiredStage)) fullscreenMount.append(desiredStage);
+}
+
 function closeFullscreenWheel() {
   if (fullscreenOverlay.contains(wheelStage)) wheelDock.append(wheelStage);
+  if (fullscreenOverlay.contains(raceStage)) wheelDock.append(raceStage);
   fullscreenOverlay.classList.add("is-hidden");
   document.body.classList.remove("wheel-mode");
   if (document.fullscreenElement === fullscreenOverlay) document.exitFullscreen?.().catch(() => {});
@@ -555,12 +587,12 @@ function questionConnectionError(error) {
 }
 
 function stateLabel(status) { return ({ WAITING: "ESPERANDO", READY: "LISTA", SPINNING: "GIRANDO", FINISHED: "FINALIZADA" })[status] || status; }
-function hintFor(status) { return ({ WAITING: "Configura las opciones para comenzar.", SPINNING: "Todos ven el mismo giro.", FINISHED: "Puedes volver a girar o reiniciar la ronda." })[status] || "La ronda está lista."; }
+function hintFor(status) { return ({ WAITING: "Configura a los corredores para comenzar.", SPINNING: "El Pan de Muerto viene detrás del grupo.", FINISHED: "Puedes iniciar otra persecución o reiniciar la ronda." })[status] || "La ronda está lista."; }
 
 $("#loginForm").addEventListener("submit", authenticate);
-$("#logoutButton").addEventListener("click", () => { stopWatching(); sessionStorage.removeItem("ronda-control-access"); location.reload(); });
+$("#logoutButton").addEventListener("click", () => { stopWatching(); stopRace(raceStage); setAmbientMusic(false); sessionStorage.removeItem("ronda-control-access"); location.reload(); });
 $("#createRoundForm").addEventListener("submit", createNewRound);
-$("#newRoundButton").addEventListener("click", () => { stopWatching(); sessionStorage.removeItem("ronda-current-admin"); currentRound = null; $("#roundDashboard").classList.add("is-hidden"); $("#roundSetup").classList.remove("is-hidden"); });
+$("#newRoundButton").addEventListener("click", () => { stopWatching(); stopRace(raceStage); setAmbientMusic(false); sessionStorage.removeItem("ronda-current-admin"); currentRound = null; $("#roundDashboard").classList.add("is-hidden"); $("#roundSetup").classList.remove("is-hidden"); });
 $("#addEntryForm").addEventListener("submit", addSingleEntry);
 $("#entryList").addEventListener("click", handleEntryAction);
 $("#addQuestionForm").addEventListener("submit", addSingleQuestion);
@@ -592,9 +624,12 @@ $("#sheetPreviewButton").addEventListener("click", async (event) => { event.prev
 $("#spinButton").addEventListener("click", startRoundSpin);
 $("#resetRoundButton").addEventListener("click", async () => { if (confirm("¿Reiniciar el estado de la ronda? La lista de opciones se conserva.")) await resetRound(currentRound.code); });
 $("#durationSelect").addEventListener("change", (event) => updateRound(currentRound.code, { durationMs: Number(event.target.value) }));
-$("#soundToggle").addEventListener("change", async (event) => { currentRound.sound = event.target.checked; await unlockWheelSound(); await updateRound(currentRound.code, { sound: event.target.checked }); if (event.target.checked) playWheelSound(520); });
+$("#soundToggle").addEventListener("change", async (event) => { currentRound.sound = event.target.checked; await unlockWheelSound(); await updateRound(currentRound.code, { sound: event.target.checked }); setAmbientMusic(event.target.checked && currentRound.music); });
+$("#musicToggle").addEventListener("change", async (event) => { currentRound.music = event.target.checked; await unlockWheelSound(); setAmbientMusic(event.target.checked && currentRound.sound); await updateRound(currentRound.code, { music: event.target.checked }); });
+$("#volumeRange").addEventListener("input", (event) => setMasterVolume(Number(event.target.value) / 100));
+$("#volumeRange").addEventListener("change", (event) => updateRound(currentRound.code, { volume: Number(event.target.value) / 100 }));
 $("#confettiToggle").addEventListener("change", (event) => updateRound(currentRound.code, { confetti: event.target.checked }));
-$("#questionModeToggle").addEventListener("change", async (event) => { currentRound.questionMode = event.target.checked; if (!event.target.checked) currentRound.questionStatus = null; setQuestionPanelVisible(event.target.checked); renderWheel(); await updateRound(currentRound.code, event.target.checked ? { questionMode: true } : { questionMode: false, questionStatus: null, questionSpin: null, questionWinner: null }); });
+$("#questionModeToggle").addEventListener("change", async (event) => { currentRound.questionMode = event.target.checked; if (!event.target.checked) currentRound.questionStatus = null; setQuestionPanelVisible(event.target.checked); renderSelectionStage(); await updateRound(currentRound.code, event.target.checked ? { questionMode: true } : { questionMode: false, questionStatus: null, questionSpin: null, questionWinner: null }); });
 $("#copyCodeButton").addEventListener("click", () => copyText(currentRound.code));
 $("#copyLinkButton").addEventListener("click", () => copyText(`${location.origin}${location.pathname.replace(/admin\.html$/, "")}room.html?code=${currentRound.code}`));
 $("#closeWinnerButton").addEventListener("click", () => { $("#winnerOverlay").classList.add("is-hidden"); showQuestionPrompt(); });
@@ -604,7 +639,8 @@ $("#fullscreenButton").addEventListener("click", openFullscreenWheel);
 $("#exitFullscreenButton").addEventListener("click", closeFullscreenWheel);
 $("#fullscreenSpinButton").addEventListener("click", startFullscreenSpin);
 $("#fullscreenWinnerContinue").addEventListener("click", continueFromFullscreenResult);
-document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && fullscreenOverlay.contains(wheelStage)) closeFullscreenWheel(); });
-document.addEventListener("keydown", (event) => { if (event.key === "Escape" && fullscreenOverlay.contains(wheelStage)) closeFullscreenWheel(); });
+document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && isSelectionFullscreen()) closeFullscreenWheel(); });
+document.addEventListener("keydown", (event) => { if (event.key === "Escape" && isSelectionFullscreen()) closeFullscreenWheel(); });
+document.addEventListener("click", (event) => { if (currentRound?.sound && event.target.closest("button")) playButtonSound(); });
 
 if (sessionStorage.getItem("ronda-control-access")) showAdmin();
