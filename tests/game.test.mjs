@@ -49,3 +49,15 @@ test("the previous winner may still be displayed for the result, even after reti
   assert.deepEqual(racePlan(people).pack, []);
   assert.equal(racePlan([]).total, 0);
 });
+
+test("the waiting scene restores a group without previous winners", () => {
+  const people = entries(20);
+  people[3].retired = true;
+  people[8].retired = true;
+  for (const limit of [4, 6]) {
+    const plan = racePlan(people, {}, limit);
+    assert.equal(plan.pack.length, limit);
+    assert.equal(plan.total, 18);
+    assert.ok(plan.pack.every(person => !person.retired));
+  }
+});

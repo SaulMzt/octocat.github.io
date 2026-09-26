@@ -1,4 +1,4 @@
-import { drawScene, drawMonster } from "./game-art.js?v=20260925-1";
+import { drawScene, drawMonster } from "./game-art.js?v=20260925-2";
 const canvas = document.querySelector("#entryScene");
 const ctx = canvas.getContext("2d", { alpha: false });
 const reduced = matchMedia("(prefers-reduced-motion: reduce)");
@@ -8,7 +8,8 @@ function render(now) {
   if (now - last > 40 || now === 0) {
     last = now;
     drawScene(ctx,canvas.width,canvas.height,reduced.matches ? 0 : now / 1000,0);
-    drawMonster(ctx,canvas.width*.85,canvas.height*.85,canvas.width < 600 ? .8 : 1.6,reduced.matches ? 0 : now / 1000,"idle");
+    const scale = canvas.width < 600 ? .8 : 1.6;
+    drawMonster(ctx,Math.min(canvas.width*.85,canvas.width-100*scale),canvas.height*.85,scale,reduced.matches ? 0 : now / 1000,"idle");
   }
   if (!reduced.matches && !document.hidden) frame = requestAnimationFrame(render);
 }

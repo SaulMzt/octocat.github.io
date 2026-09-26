@@ -1,7 +1,7 @@
 import { finishQuestionSpin, getRound, joinPresence, startQuestionSpin, watchEntries, watchPresence, watchQuestions, watchRound } from "./round-service.js?v=20260925-1";
 import { playButtonSound, playCountdownSound, playEliminationSound, playRaceSound, playWheelSound, playWinnerSound, setEffectsEnabled, setMusicPhase, setAmbientMusic, setMasterVolume, stopWheelSound, unlockWheelSound } from "./wheel-sound.js?v=20260925-1";
 import { drawWheel, spinWheel, stopWheel } from "./wheel.js?v=20260925-1";
-import { renderRace, runRace, showRaceWinner, stopRace } from "./race.js?v=20260925-1";
+import { renderRace, runRace, showRaceWinner, stopRace } from "./race.js?v=20260925-2";
 
 const code = new URLSearchParams(location.search).get("code")?.toUpperCase();
 const $ = (selector) => document.querySelector(selector);
@@ -80,7 +80,7 @@ function handleRound(nextRound) {
   setAmbientMusic(Boolean(round.music && !localMuted));
   if (localVolume === undefined) $("#roomVolume").value = Math.round((round.volume ?? .72) * 100);
   $("#roomTitle").textContent = round.title;
-  $("#roomStatus").textContent = round.questionStatus === "WAITING" ? "La persona seleccionada puede girar por una pregunta." : round.questionStatus === "SPINNING" ? "La ruleta de preguntas está girando..." : round.status === "SPINNING" ? "La calabaza está al acecho..." : round.status === "FINISHED" ? "Alguien logró escapar." : "Esperando a que comience la persecución...";
+  $("#roomStatus").textContent = round.questionStatus === "WAITING" ? "La persona seleccionada puede girar por una pregunta." : round.questionStatus === "SPINNING" ? "La ruleta de preguntas está girando..." : round.status === "SPINNING" ? "El Pan de Muerto está al acecho..." : round.status === "FINISHED" ? "Alguien logró escapar." : "Esperando a que comience la persecución...";
   renderSelectionStage();
 
   if (entriesReady && round.status === "SPINNING" && round.spin && spinId !== `${round.spin.spinNumber}-spinning`) {
@@ -114,8 +114,7 @@ function renderSelectionStage() {
     if (!wheelStage.classList.contains("is-spinning")) drawWheel(wheel, items);
     $("#roomWheelCount").textContent = items.length;
   } else if (!raceStage.classList.contains("is-running")) {
-    if (round?.status === "FINISHED" && round.winner) showRaceWinner(raceStage, entries, round.winner);
-    else renderRace(raceStage, entries);
+    renderRace(raceStage, entries);
   }
 }
 
@@ -212,9 +211,9 @@ function sprinkle(layer) { layer.innerHTML = Array.from({ length: 52 }, (_, inde
 function escapeHtml(value) { const element = document.createElement("div"); element.textContent = value; return element.innerHTML; }
 function connectionError() { $("#roomStatus").textContent = "Reconectando..."; }
 
-$("#roomCloseWinner").addEventListener("click", () => { $("#roomWinnerOverlay").classList.add("is-hidden"); window.requestAnimationFrame(showQuestionPrompt); });
+$("#roomCloseWinner").addEventListener("click", () => { $("#roomWinnerOverlay").classList.add("is-hidden"); renderSelectionStage(); window.requestAnimationFrame(showQuestionPrompt); });
 $("#roomQuestionSpinButton").addEventListener("click", spinQuestion);
-$("#roomCloseQuestionResult").addEventListener("click", () => $("#roomQuestionResult").classList.add("is-hidden"));
+$("#roomCloseQuestionResult").addEventListener("click", () => { $("#roomQuestionResult").classList.add("is-hidden"); renderSelectionStage(); });
 $("#roomAudioToggle").addEventListener("click", async () => { await unlockWheelSound(); localMuted = !localMuted; $("#roomAudioToggle").textContent = localMuted ? "×" : "♪"; $("#roomAudioToggle").setAttribute("aria-label", localMuted ? "Activar audio" : "Silenciar audio"); setMasterVolume(localMuted ? 0 : (localVolume ?? round?.volume ?? .72)); setEffectsEnabled(round?.sound !== false && !localMuted); setAmbientMusic(Boolean(round?.music && !localMuted)); if (!localMuted) playButtonSound(); });
 $("#roomVolume").addEventListener("input", async (event) => { await unlockWheelSound(); localVolume = Number(event.target.value) / 100; localMuted = false; $("#roomAudioToggle").textContent = "♪"; $("#roomAudioToggle").setAttribute("aria-label", "Silenciar audio"); setMasterVolume(localVolume); setEffectsEnabled(round?.sound !== false); setAmbientMusic(Boolean(round?.music)); if (round?.sound !== false) playButtonSound(); });
 document.addEventListener("click", (event) => { if (round?.sound !== false && !localMuted && event.target.closest("button")) playButtonSound(); });

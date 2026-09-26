@@ -27,7 +27,7 @@ Ejecuta `node dev-server.mjs` y abre `http://127.0.0.1:4173`.
 
 ## Experiencia Halloween
 
-La persecución tiene cuenta regresiva, escenario de cementerio con parallax, corredores disfrazados y una calabaza articulada. El servidor conserva un único resultado de sorteo compartido por todas las pantallas. La semilla visual solo cambia las posiciones y las animaciones; no decide el ganador.
+La persecución tiene cuenta regresiva, escenario de cementerio con parallax, corredores disfrazados y un Pan de Muerto articulado con corteza dorada, azúcar y huesitos. Al cerrar el resultado, la pista vuelve a mostrar al grupo disponible, sin los ganadores anteriores. El servidor conserva un único resultado de sorteo compartido por todas las pantallas. La semilla visual solo cambia las posiciones y las animaciones; no decide el ganador.
 
 La pista muestra un grupo representativo de hasta seis personajes (cuatro en pantallas compactas). Todos los participantes activos entran en el sorteo, aunque su personaje no esté visible; el ganador siempre forma parte del grupo mostrado. El contador refleja el total de la ronda. Los nombres largos se dividen en líneas.
 

@@ -89,9 +89,11 @@ export function drawScene(ctx, w, h, t, distance) {
   ctx.fillStyle=vignette; ctx.fillRect(0,0,w,h);
 }
 
-function limb(ctx, x, y, length, angle, color, width) {
+function limb(ctx, x, y, length, angle, color, width, handColor) {
   ctx.save(); ctx.translate(x,y); ctx.rotate(angle);
-  path(ctx,[[0,0],[3,length*.52],[0,length]],null,color,width); ctx.restore();
+  path(ctx,[[0,0],[3,length*.52],[0,length]],null,color,width);
+  if (handColor) ellipse(ctx,0,length,width*.63,width*.48,handColor);
+  ctx.restore();
 }
 
 export function drawRunner(ctx,x,y,scale,t,variant,color,state) {
@@ -104,8 +106,8 @@ export function drawRunner(ctx,x,y,scale,t,variant,color,state) {
   const skin=variant%3===0?"#b2d2ba":"#f2c6a4";
   if (variant===3) path(ctx,[[-14,-45],[-25,-1],[0,-12],[23,0],[13,-46]],"#8d5388");
   limb(ctx,-8,-20,21,stride,"#191e31",9);limb(ctx,8,-20,21,-stride,"#191e31",9);
-  limb(ctx,-16,-42,22,-stride-(celebrating?2:0),skin,7);
-  limb(ctx,16,-42,22,stride-(celebrating?2:0),skin,7);
+  limb(ctx,-16,-42,22,celebrating?2.25+Math.sin(t*7)*.12:-stride,skin,7,skin);
+  limb(ctx,16,-42,22,celebrating?-2.25-Math.sin(t*7)*.12:stride,skin,7,skin);
   box(ctx,-16,-48,32,32,8,color);
   if(variant===2) {
     path(ctx,[[0,-43],[0,-20]],null,"#f3eada",3);
@@ -122,10 +124,14 @@ export function drawRunner(ctx,x,y,scale,t,variant,color,state) {
   if(variant===5) path(ctx,[[-3,-81],[0,-91],[7,-94]],null,"#82a368",6);
   if(variant===4) for(let i=0;i<2;i++) path(ctx,[[-16,-76+i*9],[16,-70+i*9]],null,"#ece0bd",4);
   const fear=state==="scared";
-  ellipse(ctx,-6,-62,3,fear?5:3.5,"#272538");ellipse(ctx,8,-62,3,fear?5:3.5,"#272538");
-  if (Math.sin(t*.7+variant)> .994 && !running) path(ctx,[[-10,-63],[12,-63]],null,skin,6);
+  const blink = Math.sin(t*.7+variant)> .994 && !running;
+  const eyeHeight = blink ? .65 : fear ? 5 : 3.5;
+  ellipse(ctx,-6,-62,3,eyeHeight,"#272538");ellipse(ctx,8,-62,3,eyeHeight,"#272538");
   if(fear) ellipse(ctx,2,-51,4,5,"#493543"); else path(ctx,[[-2,-51],[2,-49],[6,-51]],null,"#604053",2);
-  if(celebrating) {ctx.fillStyle="#e8ca70";ctx.font="bold 26px Manrope,Arial";ctx.fillText("★",-13,-96);}
+  if(celebrating) {
+    ctx.save();ctx.translate(34,-88);ctx.rotate(Math.sin(t*3)*.15);
+    path(ctx,[[0,-8],[3,-3],[9,0],[3,3],[0,8],[-3,3],[-9,0],[-3,-3]],"#e8ca70");ctx.restore();
+  }
   ctx.restore();
 }
 
@@ -138,31 +144,48 @@ export function drawMonster(ctx,x,y,scale,t,state) {
   ellipse(ctx,0,5,58,10,"#050e198c");
   ctx.translate(0,-(running?Math.abs(Math.cos(phase))*7:Math.sin(phase)*3));
   ctx.rotate(bite?.17:running?.07:0);
-  limb(ctx,-28,-27,31,stride,"#769552",18);limb(ctx,28,-27,31,-stride,"#769552",18);
-  limb(ctx,-51,-79,52,-.5-stride*.6,"#779957",14);
-  limb(ctx,51,-79,52,bite?-1.45:state==="celebrating"?2.4+Math.sin(t*7)*.2:stride*.6-.5,"#8cb65b",14);
-  const flesh=ctx.createLinearGradient(-55,-124,50,-18);flesh.addColorStop(0,"#ffd07d");flesh.addColorStop(.38,"#ea8d3c");flesh.addColorStop(1,"#a84b31");
-  ellipse(ctx,0,-76,63,61,"#252134");
-  ellipse(ctx,-31,-77,29,52,flesh);ellipse(ctx,31,-77,29,52,flesh);ellipse(ctx,0,-77,36,57,flesh);
-  path(ctx,[[-14,-130],[-14,-151],[-1,-163],[13,-157],[3,-140],[8,-130]],"#789554","#334b39",3);
-  path(ctx,[[9,-141],[34,-159],[47,-151],[39,-135]],"#91af68");
-  path(ctx,[[-46,-102],[-17,-112],[-13,-85],[-35,-84]],"#27252a");
-  path(ctx,[[13,-85],[17,-112],[46,-102],[35,-84]],"#27252a");
-  if (Math.sin(t*.8)<.98 || running) {
-    ellipse(ctx,-25,-97,6,10,"#d8f999"); ellipse(ctx,25,-97,6,10,"#d8f999");
-    ellipse(ctx,-23,-98,2.5,7,"#24382a"); ellipse(ctx,27,-98,2.5,7,"#24382a");
+  limb(ctx,-28,-26,29,stride,"#b8753f",17,"#e1ac68");
+  limb(ctx,28,-26,29,-stride,"#b8753f",17,"#e1ac68");
+  limb(ctx,-56,-75,43,.5-stride*.6,"#c38a50",13,"#efc88a");
+  const crust=ctx.createRadialGradient(-22,-111,8,0,-80,74);
+  crust.addColorStop(0,"#f5d18c");crust.addColorStop(.5,"#dba15b");crust.addColorStop(.86,"#b77538");crust.addColorStop(1,"#7d482c");
+  ellipse(ctx,0,-75,69,59,"#392739");
+  ellipse(ctx,0,-77,66,55,crust);
+  // Traditional dough bones and the central ball distinguish the loaf from a pumpkin.
+  for (const side of [-1,1]) {
+    ctx.beginPath();ctx.moveTo(side*5,-126);ctx.bezierCurveTo(side*24,-122,side*47,-103,side*56,-76);
+    ctx.strokeStyle="#eecd96";ctx.lineWidth=11;ctx.lineCap="round";ctx.stroke();
+    ellipse(ctx,side*28,-112,8,6,"#f6daad");ellipse(ctx,side*49,-88,7,9,"#f0cf96");
+    ctx.beginPath();ctx.moveTo(side*4,-125);ctx.bezierCurveTo(side*16,-104,side*18,-59,side*34,-35);
+    ctx.strokeStyle="#f0cf96";ctx.lineWidth=9;ctx.stroke();
+    ellipse(ctx,side*31,-40,8,6,"#f6daad");
   }
-  path(ctx,[[-5,-79],[4,-88],[10,-77]],"#61362c");
-  ctx.save();ctx.translate(0,-59);ctx.scale(1,bite?1.8:chew? .8+Math.sin(t*32)*.25:1);
-  ellipse(ctx,0,0,36,19,"#382332");
-  for(let i=0;i<5;i++) {const tx=-28+i*13;path(ctx,[[tx,-12],[tx+10,-15],[tx+5,-1]],"#ffe5aa");}
-  path(ctx,[[-24,8],[-17,-1],[-12,14]],"#ffe5aa");path(ctx,[[11,14],[17,1],[24,8]],"#ffe5aa");ctx.restore();
-  path(ctx,[[-49,-67],[-43,-63]],null,"#ffbb6960",3);
-  if(state==="celebrating") path(ctx,[[55,-98],[65,-120]],null,"#c5dd6a",4);
+  for (let i=0;i<68;i++) {
+    const sx=Math.sin(i*7.13)*58, sy=-77+Math.cos(i*4.67)*46;
+    if ((sx*sx)/(61*61)+((sy+77)*(sy+77))/(49*49)<1) ellipse(ctx,sx,sy,.7+(i%3)*.25,.7,"#fff0d6bb");
+  }
+  ellipse(ctx,0,-129,20,15,"#945e33");
+  ellipse(ctx,-1,-132,18,13,"#efc180");ellipse(ctx,-5,-137,8,3,"#fce4b4");
+  const blink = Math.sin(t*.8)>.99 && !running;
+  ellipse(ctx,-23,-89,14,blink?2:15,"#412839");ellipse(ctx,23,-89,14,blink?2:15,"#412839");
+  if (!blink) {
+    ellipse(ctx,-23,-90,10,12,"#fff2d2");ellipse(ctx,23,-90,10,12,"#fff2d2");
+    ellipse(ctx,-20,-88,5,8,"#473246");ellipse(ctx,26,-88,5,8,"#473246");
+    ellipse(ctx,-18,-91,1.8,2,"#fff");ellipse(ctx,28,-91,1.8,2,"#fff");
+  }
+  path(ctx,[[-38,-106],[-24,-110],[-12,-105]],null,"#805134",4);
+  path(ctx,[[12,-105],[25,-110],[37,-106]],null,"#805134",4);
+  ellipse(ctx,-44,-68,8,4,"#db927477");ellipse(ctx,44,-68,8,4,"#db927477");
+  ctx.save();ctx.translate(0,-57);ctx.scale(1,bite?1.45:chew?.82+Math.sin(t*24)*.16:1);
+  ellipse(ctx,0,0,32,17,"#412839");ellipse(ctx,5,9,14,5,"#ce7981");
+  for(const tx of [-23,-10,3,16]) path(ctx,[[tx,-12],[tx+9,-13],[tx+5,-2]],"#fff0d2");
+  path(ctx,[[-22,8],[-16,0],[-12,13]],"#fff0d2");path(ctx,[[11,13],[16,0],[22,8]],"#fff0d2");ctx.restore();
+  limb(ctx,57,-73,43,bite?-1.35:state==="celebrating"?-2.25+Math.sin(t*7)*.15:stride*.6-.5,"#c38a50",13,"#efc88a");
   ctx.restore();
 }
 
 export function drawName(ctx,name,x,y,maxWidth,color,selected=false) {
+  ctx.save();
   let size=17;
   const linesFor = () => {
     ctx.font=`700 ${size}px Manrope,Arial`;
@@ -180,6 +203,7 @@ export function drawName(ctx,name,x,y,maxWidth,color,selected=false) {
   box(ctx,x-width/2,y-height,3,height,2,color);
   ctx.fillStyle=selected?"#171c29":"#f7f3ec";ctx.textAlign="center";ctx.textBaseline="middle";
   lines.forEach((line,i)=>ctx.fillText(line,x,y-height+9+size/2+i*(size+3),maxWidth-14));
+  ctx.restore();
 }
 
 export function drawPoof(ctx,x,y,progress,color) {

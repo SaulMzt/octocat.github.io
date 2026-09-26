@@ -9,7 +9,7 @@ import { readPublishedSheet, readSpreadsheet, valuesForColumn } from "./import-s
 import { deleteProfile, deleteQuestionProfile, getProfiles, getQuestionProfiles, renameProfile, renameQuestionProfile, saveProfile, saveQuestionProfile } from "./profiles.js";
 import { playButtonSound, playCountdownSound, playEliminationSound, playRaceSound, playSoundTest, playWheelSound, playWinnerSound, setAmbientMusic, setEffectsEnabled, setMusicPhase, setMasterVolume, stopWheelSound, unlockWheelSound } from "./wheel-sound.js?v=20260925-1";
 import { drawWheel, spinWheel, stopWheel } from "./wheel.js?v=20260925-1";
-import { renderRace, runRace, showRaceWinner, stopRace } from "./race.js?v=20260925-1";
+import { renderRace, runRace, showRaceWinner, stopRace } from "./race.js?v=20260925-2";
 
 const $ = (selector) => document.querySelector(selector);
 const wheel = $("#adminWheel");
@@ -274,8 +274,7 @@ function renderSelectionStage() {
     $("#wheelCount").textContent = items.length;
     $("#wheelKind").textContent = "preguntas";
   } else if (!raceStage.classList.contains("is-running")) {
-    if (currentRound?.status === "FINISHED" && currentRound.winner) showRaceWinner(raceStage, entries, currentRound.winner);
-    else renderRace(raceStage, entries);
+    renderRace(raceStage, entries);
   }
   syncFullscreenStage();
 }
@@ -675,6 +674,7 @@ function closeFullscreenWheel() {
   fullscreenOverlay.classList.add("is-hidden");
   document.body.classList.remove("wheel-mode");
   if (document.fullscreenElement === fullscreenOverlay) document.exitFullscreen?.().catch(() => {});
+  renderSelectionStage();
 }
 
 function connectionError() {
@@ -688,7 +688,7 @@ function questionConnectionError(error) {
 }
 
 function stateLabel(status) { return ({ WAITING: "EN ESPERA", READY: "LISTA", SPINNING: "EN PERSECUCIÓN", FINISHED: "FINALIZADA" })[status] || status; }
-function hintFor(status) { return ({ WAITING: "Todo listo para la medianoche.", SPINNING: "La calabaza está al acecho.", FINISHED: "Una persona escapó. La noche continúa." })[status] || "La ronda está lista."; }
+function hintFor(status) { return ({ WAITING: "Todo listo para la medianoche.", SPINNING: "El Pan de Muerto está al acecho.", FINISHED: "Una persona escapó. La noche continúa." })[status] || "La ronda está lista."; }
 
 $("#loginForm").addEventListener("submit", authenticate);
 $("#logoutButton").addEventListener("click", () => { stopWatching(); stopRace(raceStage); setAmbientMusic(false); sessionStorage.removeItem("ronda-control-access"); location.reload(); });
@@ -734,11 +734,11 @@ $("#confettiToggle").addEventListener("change", (event) => updateRound(currentRo
 $("#questionModeToggle").addEventListener("change", async (event) => { currentRound.questionMode = event.target.checked; if (!event.target.checked) currentRound.questionStatus = null; setQuestionPanelVisible(event.target.checked); renderSelectionStage(); await updateRound(currentRound.code, event.target.checked ? { questionMode: true } : { questionMode: false, questionStatus: null, questionSpin: null, questionWinner: null }); });
 $("#copyCodeButton").addEventListener("click", () => copyText(currentRound.code));
 $("#copyLinkButton").addEventListener("click", () => copyText(`${location.origin}${location.pathname.replace(/admin\.html$/, "")}room.html?code=${currentRound.code}`, "Enlace copiado"));
-$("#closeWinnerButton").addEventListener("click", () => { $("#winnerOverlay").classList.add("is-hidden"); window.requestAnimationFrame(showQuestionPrompt); });
+$("#closeWinnerButton").addEventListener("click", () => { $("#winnerOverlay").classList.add("is-hidden"); renderSelectionStage(); window.requestAnimationFrame(showQuestionPrompt); });
 $("#questionPromptSpinButton").addEventListener("click", startQuestionRoundSpin);
 $("#skipQuestionButton").addEventListener("click", skipQuestion);
 $("#fullscreenSkipQuestion").addEventListener("click", skipQuestion);
-$("#closeQuestionResultButton").addEventListener("click", () => $("#questionResultOverlay").classList.add("is-hidden"));
+$("#closeQuestionResultButton").addEventListener("click", () => { $("#questionResultOverlay").classList.add("is-hidden"); renderSelectionStage(); });
 $("#fullscreenButton").addEventListener("click", openFullscreenWheel);
 $("#exitFullscreenButton").addEventListener("click", closeFullscreenWheel);
 $("#fullscreenSpinButton").addEventListener("click", startFullscreenSpin);

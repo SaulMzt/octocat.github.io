@@ -1,4 +1,4 @@
-import { COLORS, drawScene, drawRunner, drawMonster, drawName, drawPoof } from "./game-art.js?v=20260925-1";
+import { COLORS, drawScene, drawRunner, drawMonster, drawName, drawPoof } from "./game-art.js?v=20260925-2";
 
 const states = new WeakMap();
 const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
@@ -143,6 +143,8 @@ function paint(state) {
     if (!state.media.matches && Math.abs(progress - target.at) < .018) ctx.translate(Math.sin(t * 95) * 2.2, Math.cos(t * 90) * 1.4);
   }
   const celebrating = phase === "winner";
+  const actors = [], labels = [], effects = [];
+  let visibleCount = 0;
   state.pack.forEach((entry, index) => {
     const event = state.catches.find(item => item.id === entry.id);
     const caught = state.running && event && progress >= event.at;
@@ -153,8 +155,10 @@ function paint(state) {
     if (caught) {
       const poof = clamp((progress - event.at) / .055);
       if (poof < 1) {
-        drawPoof(ctx,pos.x,pos.y-38,poof,COLORS[index%6]);
-        ctx.save(); ctx.globalAlpha = 1 - poof; ctx.fillStyle = "#f3d6a8"; ctx.font = "700 15px Manrope,Arial"; ctx.textAlign = "center"; ctx.fillText("ELIMINADO", pos.x, pos.y - 92 - poof * 12); ctx.restore();
+        effects.push(() => {
+          drawPoof(ctx,pos.x,pos.y-38,poof,COLORS[index%6]);
+          ctx.save(); ctx.globalAlpha = 1 - poof; ctx.fillStyle = "#f3d6a8"; ctx.font = "700 15px Manrope,Arial"; ctx.textAlign = "center"; ctx.textBaseline = "bottom"; ctx.fillText("ELIMINADO", pos.x, pos.y - 92 - poof * 12); ctx.restore();
+        });
       }
       return;
     }
@@ -163,13 +167,23 @@ function paint(state) {
     const y = state.options.winnerId ? h*.72 : pos.y+(h*.72-pos.y)*center;
     const scared = state.running && event && progress > event.at - .08;
     const appearance = [...entry.id].reduce((sum,char)=>sum+char.charCodeAt(0),0)%6;
-    drawRunner(ctx,x,y,survivor ? pos.scale + (1.3 - pos.scale) * (state.options.winnerId ? 1 : center) : pos.scale,t+index*.23,appearance,COLORS[appearance],survivor?"winner":scared?"scared":state.running&&progress>0?"running":"idle");
-    drawName(ctx,entry.name,x,y-(survivor?103+44*(state.options.winnerId?1:center):103),state.width===600?166:242,COLORS[appearance],survivor);
+    const scale = survivor ? pos.scale + (1.3 - pos.scale) * (state.options.winnerId ? 1 : center) : pos.scale;
+    visibleCount++;
+    actors.push({ y, draw: () => drawRunner(ctx,x,y,scale,t+index*.23,appearance,COLORS[appearance],survivor?"winner":scared?"scared":state.running&&progress>0?"running":"idle") });
+    labels.push(() => drawName(ctx,entry.name,x,y-(appearance===0?128:108)*scale-14,state.width===600?166:242,COLORS[appearance],survivor));
     if (scared && !state.media.matches) {
-      ctx.fillStyle="#f5c679";ctx.font="bold 27px Manrope";ctx.fillText("!",x+31,y-70);
+      effects.push(() => { ctx.save(); ctx.fillStyle="#f5c679";ctx.font="bold 27px Manrope";ctx.textAlign="center";ctx.textBaseline="bottom";ctx.fillText("!",x+31,y-70);ctx.restore(); });
     }
   });
-  drawMonster(ctx,celebrating?w*.17:monsterX,celebrating?h*.88:monsterY,state.width===600?.78:1.04,t,celebrating?"celebrating":monsterState);
+  const retreat = celebrating ? 1 : state.running ? ease((progress - .88) / .12) : 0;
+  monsterX += (w*.17-monsterX)*retreat;
+  monsterY += (h*.88-monsterY)*retreat;
+  actors.push({ y: monsterY, draw: () => drawMonster(ctx,monsterX,monsterY,state.width===600?.78:1.04,t,celebrating?"celebrating":monsterState) });
+  // Depth-sort bodies, then keep every participant label above the action.
+  actors.sort((a,b)=>a.y-b.y).forEach(actor=>actor.draw());
+  effects.forEach(draw=>draw());
+  labels.forEach(draw=>draw());
+  state.container.dataset.visibleCount = String(visibleCount);
   ctx.restore();
   if (state.media.matches && !state.running) return;
   state.frame = requestAnimationFrame(() => paint(state));
