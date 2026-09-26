@@ -105,4 +105,5 @@
   .setup-view { grid-template-columns:1fr; margin:60px auto; }
   .setup-intro h1 { font-size:2rem; }
 }
-
+#participantLimitForm { display:grid; gap:8px; margin-top:14px; min-width:0; }
+#participantLimitForm input { width:100%; min-width:0; }

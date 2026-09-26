@@ -115,7 +115,8 @@ export function drawRunner(ctx,x,y,scale,t,variant,color,state) {
   if (variant===3) path(ctx,[[-14,-45],[-25,-1],[0,-12],[23,0],[13,-46]],"#8d5388");
   limb(ctx,-8,-20,21,stride,"#191e31",9);limb(ctx,8,-20,21,-stride,"#191e31",9);
   if (running) runningArm(ctx,-10,-43,25,stride*.65,skin,7,skin);
-  else limb(ctx,-16,-42,22,celebrating?2.25+Math.sin(t*7)*.12:.18,skin,7,skin);
+  else if (celebrating) limb(ctx,-16,-42,22,2.25+Math.sin(t*7)*.12,skin,7,skin);
+  else runningArm(ctx,-12,-43,24,.1,skin,7,skin);
   box(ctx,-16,-48,32,32,8,color);
   if(variant===2) {
     path(ctx,[[0,-43],[0,-20]],null,"#f3eada",3);
@@ -123,7 +124,8 @@ export function drawRunner(ctx,x,y,scale,t,variant,color,state) {
   }
   if(variant===4) for(let i=0;i<3;i++) path(ctx,[[-13,-44+i*9],[13,-38+i*9]],null,"#eee4cf",4);
   if (running) runningArm(ctx,10,-43,25,-stride*.65,skin,7,skin);
-  else limb(ctx,16,-42,22,celebrating?-2.25-Math.sin(t*7)*.12:-.18,skin,7,skin);
+  else if (celebrating) limb(ctx,16,-42,22,-2.25-Math.sin(t*7)*.12,skin,7,skin);
+  else runningArm(ctx,12,-43,24,-.1,skin,7,skin);
   ctx.save();
   if (running) { ctx.translate(5,0);ctx.scale(.9,1); }
   ellipse(ctx,0,-62,20,20,variant===1?"#ddddec":variant===5?"#e98b3f":skin);
@@ -162,7 +164,7 @@ export function drawMonster(ctx,x,y,scale,t,state) {
   limb(ctx,28,-26,29,-stride,"#b8753f",17,"#e1ac68");
   const moving = running || state==="walking";
   if (moving) runningArm(ctx,-49,-70,48,stride*.65,"#ad703e",13,"#e1ac68");
-  else limb(ctx,-56,-75,43,.5-stride*.6,"#c38a50",13,"#efc88a");
+  else runningArm(ctx,-49,-70,48,.1,"#ad703e",13,"#e1ac68");
   const crust=ctx.createRadialGradient(-22,-111,8,0,-80,74);
   crust.addColorStop(0,"#f5d18c");crust.addColorStop(.5,"#dba15b");crust.addColorStop(.86,"#b77538");crust.addColorStop(1,"#7d482c");
   ellipse(ctx,0,-75,69,59,"#392739");
@@ -199,7 +201,7 @@ export function drawMonster(ctx,x,y,scale,t,state) {
   for(const tx of [-23,-10,3,16]) path(ctx,[[tx,-12],[tx+9,-13],[tx+5,-2]],"#fff0d2");
   path(ctx,[[-22,8],[-16,0],[-12,13]],"#fff0d2");path(ctx,[[11,13],[16,0],[22,8]],"#fff0d2");ctx.restore();
   ctx.restore();
-  if (moving && !bite) runningArm(ctx,49,-65,48,-stride*.65,"#c38a50",13,"#efc88a");
+  if (!bite && state!=="celebrating") runningArm(ctx,49,-65,48,moving?-stride*.65:-.1,"#c38a50",13,"#efc88a");
   else limb(ctx,57,-73,43,bite?-1.35:state==="celebrating"?-2.25+Math.sin(t*7)*.15:stride*.6-.5,"#c38a50",13,"#efc88a");
   ctx.restore();
 }

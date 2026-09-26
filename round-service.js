@@ -1,5 +1,6 @@
 import { Timestamp, addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, orderBy, query, runTransaction, serverTimestamp, setDoc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 import { db } from "./firebase-service.js";
+import { participantCount } from "./js/race-settings.js?v=20260926-2";
 
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const asData = (snapshot) => ({ id: snapshot.id, ...snapshot.data() });
@@ -65,17 +66,31 @@ export async function retireHistoricalWinners(code) {
 export async function startSpin(round, entries) {
   const available = entries.filter(entry => entry.enabled && !entry.retired);
   if (!available.length) throw new Error("Agrega participantes activos para iniciar la persecución.");
-  const index = randomIndex(available.length), winner = available[index];
   const ref = doc(db, "rounds", round.code);
   return runTransaction(db, async transaction => {
     const live = (await transaction.get(ref)).data();
-    const selected = (await transaction.get(doc(db, "rounds", round.code, "entries", winner.id))).data();
     if (!live || live.status === "SPINNING" || ["WAITING", "SPINNING"].includes(live.questionStatus)) throw new Error("Ya hay una selección en curso.");
+    const pool = [...available], count = participantCount(pool.length, live.participantLimit);
+    for (let i = 0; i < count; i++) {
+      const j = i + randomIndex(pool.length - i);
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    const participants = pool.slice(0, count).map(({ id, name }) => ({ id, name }));
+    const index = randomIndex(participants.length), winner = participants[index];
+    const selected = (await transaction.get(doc(db, "rounds", round.code, "entries", winner.id))).data();
     if (!selected?.enabled || selected.retired) throw new Error("La lista cambió. Vuelve a iniciar la persecución.");
     const spinNumber = (live.spinCount || 0) + 1;
-    const spin = { winnerId: winner.id, winnerName: selected.name, targetIndex: index, total: available.length, visualSeed: randomUint32(), startedAt: Timestamp.now(), countdownMs: 2100, durationMs: live.durationMs || 7000, spinNumber };
+    const spin = { winnerId: winner.id, winnerName: selected.name, targetIndex: index, total: participants.length, participants, visualSeed: randomUint32(), startedAt: Timestamp.now(), countdownMs: 2100, durationMs: live.durationMs || 7000, spinNumber };
     transaction.update(ref, { status: "SPINNING", spin, winner: null, spinCount: spinNumber, questionStatus: null, questionSpin: null, questionWinner: null, updatedAt: serverTimestamp() });
     return spin;
+  });
+}
+export async function setParticipantLimit(code, value) {
+  if (!Number.isSafeInteger(value) || value < 0) throw new Error("Escribe una cantidad entera mayor que cero.");
+  return runTransaction(db, async transaction => {
+    const ref = doc(db, "rounds", code), live = (await transaction.get(ref)).data();
+    if (!live || live.status === "SPINNING" || live.questionStatus === "SPINNING") throw new Error("Espera a que termine la selección.");
+    transaction.update(ref, { participantLimit: value, updatedAt: serverTimestamp() });
   });
 }
 export async function finishSpin(round) {

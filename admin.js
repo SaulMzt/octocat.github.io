@@ -3,13 +3,13 @@ import {
   addEntries, addEntry, addQuestion, addQuestions, createRound, finishQuestionSpin,
   finishSpin, getRound, hashText, isRoundAdmin, removeEntry, removeQuestion,
   reorderEntry, reorderQuestion, replaceEntries, replaceQuestions, resetRound, retireHistoricalWinners, skipQuestionRound, startQuestionSpin, startSpin, updateEntry, updateQuestion,
-  updateRound, watchEntries, watchPresence, watchQuestions, watchRound
-} from "./round-service.js?v=20260925-1";
+  updateRound, setParticipantLimit, watchEntries, watchPresence, watchQuestions, watchRound
+} from "./round-service.js?v=20260926-2";
 import { readPublishedSheet, readSpreadsheet, valuesForColumn } from "./import-service.js?v=20260925-1";
 import { deleteProfile, deleteQuestionProfile, getProfiles, getQuestionProfiles, renameProfile, renameQuestionProfile, saveProfile, saveQuestionProfile } from "./profiles.js";
 import { playButtonSound, playCountdownSound, playEliminationSound, playRaceSound, playSoundTest, playWheelSound, playWinnerSound, setAmbientMusic, setEffectsEnabled, setMusicPhase, setMasterVolume, stopWheelSound, unlockWheelSound } from "./wheel-sound.js?v=20260925-1";
 import { drawWheel, spinWheel, stopWheel } from "./wheel.js?v=20260925-1";
-import { renderRace, runRace, showRaceWinner, stopRace } from "./race.js?v=20260926-1";
+import { renderRace, runRace, showRaceWinner, stopRace } from "./race.js?v=20260926-2";
 
 const $ = (selector) => document.querySelector(selector);
 const wheel = $("#adminWheel");
@@ -157,10 +157,13 @@ function handleRoundUpdate(round) {
   setAmbientMusic(Boolean(round.music));
   $("#durationSelect").value = round.durationMs || 7000;
   $("#confettiToggle").checked = round.confetti !== false;
-  const busy = round.status === "SPINNING" || questionSpinning || listBusy;
+  if (document.activeElement !== $("#participantLimit")) $("#participantLimit").value = round.participantLimit || "";
+  const busy = starting || round.status === "SPINNING" || questionSpinning || listBusy;
   $("#spinButton").disabled = busy;
   $("#fullscreenSpinButton").disabled = busy;
   $("#newRoundButton").disabled = busy;
+  $("#participantLimit").disabled = busy;
+  $("#applyParticipantLimit").disabled = busy;
   document.querySelectorAll(".control-column button, .control-column input, .control-column select, .control-column textarea, #questionModeToggle, #durationSelect").forEach(element => { element.disabled = busy; });
   if (!busy) { updateProfileActions(); updateQuestionProfileActions(); document.querySelectorAll(".retired .entry-enable").forEach(element => { element.disabled = true; }); }
   setQuestionPanelVisible(Boolean(round.questionMode));
@@ -274,7 +277,7 @@ function renderSelectionStage() {
     $("#wheelCount").textContent = items.length;
     $("#wheelKind").textContent = "preguntas";
   } else if (!raceStage.classList.contains("is-running")) {
-    renderRace(raceStage, entries);
+    renderRace(raceStage, entries, { participantLimit: currentRound?.participantLimit });
   }
   syncFullscreenStage();
 }
@@ -487,6 +490,7 @@ async function startRoundSpin() {
   try {
     starting = true;
     $("#spinButton").disabled = true; $("#fullscreenSpinButton").disabled = true;
+    $("#participantLimit").disabled = true; $("#applyParticipantLimit").disabled = true;
     await unlockWheelSound();
     setMessage("Preparando la persecución para toda la sala...");
     const spin = await startSpin(currentRound, entries);
@@ -499,8 +503,10 @@ async function startRoundSpin() {
     setMessage(error.message || "No se pudo iniciar la persecución.", "error");
   } finally {
     starting = false;
-    $("#spinButton").disabled = currentRound?.status === "SPINNING";
+    const running = currentRound?.status === "SPINNING" || raceStage.classList.contains("is-running");
+    $("#spinButton").disabled = running;
     $("#fullscreenSpinButton").disabled = $("#spinButton").disabled;
+    $("#participantLimit").disabled = running; $("#applyParticipantLimit").disabled = running;
   }
 }
 
@@ -725,6 +731,19 @@ $("#sheetPreviewButton").addEventListener("click", async (event) => { event.prev
 $("#spinButton").addEventListener("click", startRoundSpin);
 $("#resetRoundButton").addEventListener("click", async () => { if (confirm("¿Reiniciar el estado de la ronda? La lista de opciones se conserva.")) await resetRound(currentRound.code); });
 $("#durationSelect").addEventListener("change", (event) => updateRound(currentRound.code, { durationMs: Number(event.target.value) }));
+$("#participantLimitForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  const input = $("#participantLimit"), value = input.value === "" ? 0 : Number(input.value);
+  if (!input.reportValidity() || !currentRound) return;
+  $("#applyParticipantLimit").disabled = true;
+  try {
+    await setParticipantLimit(currentRound.code, value);
+    currentRound.participantLimit = value;
+    renderSelectionStage();
+    setMessage(value ? `Cantidad guardada: hasta ${value} participantes por ronda.` : "Participarán todas las personas disponibles.");
+  } catch (error) { setMessage(error.message, "error"); }
+  finally { $("#applyParticipantLimit").disabled = currentRound?.status === "SPINNING" || currentRound?.questionStatus === "SPINNING"; }
+});
 $("#soundToggle").addEventListener("change", async (event) => { currentRound.sound = event.target.checked; setEffectsEnabled(event.target.checked); await unlockWheelSound(); await updateRound(currentRound.code, { sound: event.target.checked }); if (event.target.checked) playButtonSound(); });
 $("#musicToggle").addEventListener("change", async (event) => { currentRound.music = event.target.checked; await unlockWheelSound(); setAmbientMusic(event.target.checked); await updateRound(currentRound.code, { music: event.target.checked }); });
 $("#volumeRange").addEventListener("input", (event) => { setMasterVolume(Number(event.target.value) / 100); $("#volumeValue").textContent = `${event.target.value}%`; });

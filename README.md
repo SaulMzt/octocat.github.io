@@ -29,7 +29,7 @@ Ejecuta `node dev-server.mjs` y abre `http://127.0.0.1:4173`.
 
 La persecución tiene cuenta regresiva, escenario de cementerio con parallax, corredores disfrazados y un Pan de Muerto articulado con corteza dorada, azúcar y huesitos. Al cerrar el resultado, la pista vuelve a mostrar al grupo disponible, sin los ganadores anteriores. El servidor conserva un único resultado de sorteo compartido por todas las pantallas. La semilla visual solo cambia las posiciones y las animaciones; no decide el ganador.
 
-La pista muestra un grupo representativo de hasta seis personajes (cuatro en pantallas compactas). Todos los participantes activos entran en el sorteo, aunque su personaje no esté visible; el ganador siempre forma parte del grupo mostrado. El contador refleja el total de la ronda. Los nombres largos se dividen en líneas.
+La pista muestra un grupo representativo de hasta seis personajes (cuatro en pantallas compactas). El control "Participantes por ronda" permite limitar el sorteo a una muestra aleatoria de la lista activa; dejarlo vacío incluye a todos. Si quedan menos personas que la cantidad elegida, participan las disponibles. La muestra y el ganador quedan guardados juntos para sincronizar todas las pantallas. El contador "EN PISTA" coincide con los personajes visibles, y el pie indica por separado el total del sorteo. Los nombres largos se dividen en líneas.
 
 Los ganadores y las preguntas seleccionadas quedan retirados. Reiniciar la ronda cancela la animación sin reactivar ganadores anteriores. Cargar un perfil reemplaza la lista con participantes nuevos. Se puede seleccionar la última persona o pregunta restante.
 

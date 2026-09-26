@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { racePlan } from "../js/game.js";
+import { participantCount } from "../js/race-settings.js";
 
 const entries = count => Array.from({ length: count }, (_, index) => ({ id: `person-${index}`, name: `Participante ${index}`, enabled: true }));
 
@@ -60,4 +61,23 @@ test("the waiting scene restores a group without previous winners", () => {
     assert.equal(plan.total, 18);
     assert.ok(plan.pack.every(person => !person.retired));
   }
+});
+
+test("participant limits clamp to availability and default to everyone", () => {
+  for (const [available, limit, expected] of [[8,3,3],[2,10,2],[0,4,0],[8,0,8],[8,undefined,8],[8,-1,8],[8,1.5,8]]) {
+    assert.equal(participantCount(available,limit),expected);
+  }
+  const plan = racePlan(entries(20), { participantLimit: 3 });
+  assert.equal(plan.total,3);
+  assert.equal(plan.pack.length,3);
+});
+
+test("the shared cohort determines the race, even when the live list changes", () => {
+  const participants = entries(3).map(({id,name})=>({id,name}));
+  const spin = { participants, winnerId: participants[1].id, total:3, visualSeed:22 };
+  const plan = racePlan([],spin);
+  assert.equal(plan.total,3);
+  assert.equal(plan.pack.length,3);
+  assert.deepEqual(new Set(plan.pack.map(p=>p.id)),new Set(participants.map(p=>p.id)));
+  assert.ok(!plan.catches.some(p=>p.id===spin.winnerId));
 });

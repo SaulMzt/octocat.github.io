@@ -1,4 +1,4 @@
-import { drawScene, drawMonster } from "./game-art.js?v=20260926-1";
+import { drawScene, drawMonster } from "./game-art.js?v=20260926-2";
 const canvas = document.querySelector("#entryScene");
 const ctx = canvas.getContext("2d", { alpha: false });
 const reduced = matchMedia("(prefers-reduced-motion: reduce)");

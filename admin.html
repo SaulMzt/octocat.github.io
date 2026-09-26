@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=20260925-1" />
-    <link rel="stylesheet" href="css/admin.css?v=20260925-1" />
+    <link rel="stylesheet" href="css/admin.css?v=20260926-2" />
     <link rel="stylesheet" href="css/game.css?v=20260925-1" />
   </head>
   <body class="site-body admin-body">
@@ -170,6 +170,11 @@
               <div class="setting-group">
               <label class="field-label" for="durationSelect">Duración de la selección</label>
               <select id="durationSelect"><option value="5000">5 segundos</option><option value="7000" selected>7 segundos</option><option value="9000">9 segundos</option></select>
+              <form id="participantLimitForm">
+                <label class="field-label" for="participantLimit">Participantes por ronda</label>
+                <input id="participantLimit" type="number" min="1" step="1" placeholder="Todos" aria-label="Participantes por ronda, vacío para todos" />
+                <button id="applyParticipantLimit" class="button button-quiet" type="submit">Aplicar cantidad</button>
+              </form>
               </div>
               </div>
             </section>
@@ -201,6 +206,6 @@
     <section id="winnerOverlay" class="winner-overlay is-hidden" aria-live="assertive"><div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div><div class="winner-content"><p>✦ SOBREVIVIENTE</p><h2 id="winnerName">Nombre</h2><span id="winnerDetail">Persecución #1</span><button id="closeWinnerButton" class="button button-dark" type="button">Continuar</button></div></section>
     <section id="questionPromptOverlay" class="winner-overlay question-prompt is-hidden" aria-live="assertive"><div class="winner-content"><p>SEGUNDA PRUEBA</p><h2>Ahora gira por una pregunta</h2><span id="questionPromptDetail">La persona seleccionada elegirá el siguiente tema.</span><button id="questionPromptSpinButton" class="button button-primary" type="button">GIRAR PREGUNTA</button><button id="skipQuestionButton" class="button button-quiet skip-question" type="button">Omitir pregunta</button></div></section>
     <section id="questionResultOverlay" class="winner-overlay question-result is-hidden" aria-live="assertive"><div id="questionConfettiLayer" class="confetti-layer" aria-hidden="true"></div><div class="winner-content"><p>💬 PREGUNTA SELECCIONADA</p><h2 id="questionResultText"></h2><button id="closeQuestionResultButton" class="button button-dark" type="button">Continuar</button></div></section>
-    <script type="module" src="admin.js?v=20260926-1"></script>
+    <script type="module" src="admin.js?v=20260926-2"></script>
   </body>
 </html>

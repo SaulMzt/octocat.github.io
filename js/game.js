@@ -1,4 +1,5 @@
-import { COLORS, drawScene, drawRunner, drawMonster, drawName, drawPoof } from "./game-art.js?v=20260926-1";
+import { COLORS, drawScene, drawRunner, drawMonster, drawName, drawPoof } from "./game-art.js?v=20260926-2";
+import { participantCount } from "./race-settings.js?v=20260926-2";
 
 const states = new WeakMap();
 const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
@@ -14,13 +15,14 @@ export function shuffle(items, seed) {
   return result;
 }
 export function racePlan(entries, spin = {}, limit = 6) {
-  const active = entries.filter(entry => (entry.enabled && !entry.retired) || entry.id === spin.winnerId);
+  let active = spin.participants || entries.filter(entry => (entry.enabled && !entry.retired) || entry.id === spin.winnerId);
   const seed = spin.visualSeed || spin.spinNumber || 17;
+  if (!spin.winnerId) active = shuffle(active, seed).slice(0, participantCount(active.length, spin.participantLimit));
   const winner = active.find(entry => entry.id === spin.winnerId);
   const others = shuffle(active.filter(entry => entry.id !== spin.winnerId), seed);
   const pack = shuffle([...others.slice(0, limit - (winner ? 1 : 0)), ...(winner ? [winner] : [])], seed ^ 0x9e3779b9);
   const caught = shuffle(pack.filter(entry => entry.id !== spin.winnerId), seed ^ 0x85ebca6b);
-  return { pack, catches: caught.map((entry, i) => ({ id: entry.id, at: .28 + i / Math.max(1, caught.length - 1) * .56 })), total: spin.total || active.length };
+  return { pack, catches: caught.map((entry, i) => ({ id: entry.id, at: .28 + i / Math.max(1, caught.length - 1) * .56 })), total: spin.total ?? active.length };
 }
 function textElement(className, tag = "div") {
   const element = document.createElement(tag); element.className = className; return element;
@@ -38,6 +40,9 @@ export function stopRace(container) {
 }
 export function renderRace(container, entries, options = {}) {
   stopRace(container);
+  delete container.dataset.phase;
+  delete container.dataset.remaining;
+  delete container.dataset.visibleCount;
   const hidden = container.classList.contains("is-hidden");
   container.className = "race-stage";
   container.classList.toggle("is-hidden", hidden);
@@ -79,7 +84,6 @@ function resize(state) {
   Object.assign(state, plan);
   if (state.options.winnerId && !state.running) state.pack = state.pack.filter(entry => entry.id === state.options.winnerId);
   state.captionTitle.textContent = state.options.winnerId ? "¡Escapó de la medianoche!" : state.total ? "La última persona en pie" : "Agrega participantes para comenzar";
-  state.captionDetail.textContent = state.total ? `${Math.min(state.pack.length, state.total)} en pista · ${state.total} participan` : "La noche está por comenzar";
   state.wake();
 }
 function position(state, index, t, progress) {
@@ -119,12 +123,12 @@ function paint(state) {
   const zoom = state.media.matches ? 1 : state.running ? 1 + .018 * Math.sin(progress * Math.PI) : 1;
   ctx.translate(w * (1 - zoom) / 2, h * (1 - zoom) / 2); ctx.scale(zoom,zoom);
   drawScene(ctx,w,h,t,distance);
-  const remaining = state.running ? Math.max(1, state.total - Math.floor(clamp((progress - .24) / .65) * (state.total - 1))) : state.options.winnerId ? 1 : state.total;
-  state.count.textContent = `${remaining} ${remaining === 1 ? "EN PIE" : "EN PIE"}`;
+  const remaining = state.options.winnerId || phase === "winner" ? 1 : state.pack.length - (state.running ? state.catches.filter(event => progress >= event.at).length : 0);
+  state.count.textContent = `${remaining} EN PISTA`;
   state.container.dataset.remaining = remaining;
+  state.captionDetail.textContent = `${remaining} ${remaining === 1 ? "visible" : "visibles"} · ${state.total} en el sorteo`;
   if (state.running) {
     state.captionTitle.textContent = phase === "countdown" ? "Preparados…" : phase === "walking" ? "¡Corran!" : phase === "tension" ? "La última oportunidad" : "Que no te alcance";
-    state.captionDetail.textContent = `${remaining} de ${state.total} siguen en la carrera`;
   }
   let target = state.catches.find(item => progress < item.at + .06);
   let monsterX = w * .14, monsterY = h * .76, monsterState = phase === "walking" ? "walking" : state.running && progress > 0 ? "running" : "idle";
