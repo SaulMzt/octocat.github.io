@@ -3,56 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#1b102b" />
-    <link rel="icon" type="image/webp" href="assets/pan-monster.webp" />
-    <title>Ronda de Muertos | Experiencia en vivo</title>
+    <meta name="theme-color" content="#0d1017" />
+    <link rel="icon" type="image/svg+xml" href="assets/icons/pumpkin.svg" />
+    <title>Ronda Halloween | Entrar a la sala</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=20260919-4" />
+    <link rel="stylesheet" href="styles.css?v=20260925-1" />
   </head>
   <body class="site-body">
     <main class="landing">
+      <canvas id="entryScene" class="entry-scene" aria-hidden="true"></canvas>
       <nav class="topbar" aria-label="Navegación principal">
-        <a class="brand" href="index.html" aria-label="Ronda de Muertos, inicio"><span class="brand-mark" aria-hidden="true"></span>Ronda de Muertos</a>
-        <a class="text-link" href="admin.html">Acceso administrador</a>
+        <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>RONDA <small>HALLOWEEN</small></a>
+        <a class="text-link" href="admin.html">Administrar</a>
       </nav>
-      <section class="landing-grid">
-        <div class="landing-copy">
-          <p class="kicker">PAN DE MUERTO · EXPERIENCIA EN VIVO</p>
-          <h1>Corre antes de que el Pan te alcance.</h1>
-          <p class="lead">Entra con tu código, acompaña la persecución y descubre quién logra escapar del Pan de Muerto.</p>
-          <a class="button button-primary button-large" href="admin.html">Crear una ronda <span aria-hidden="true">→</span></a>
-        </div>
-        <section class="join-card" aria-labelledby="join-title">
-          <div class="card-symbol" aria-hidden="true">✦</div>
-          <p class="kicker">PARTICIPAR</p>
-          <h2 id="join-title">Unirse a una ronda</h2>
-          <p>Introduce el código que compartió el administrador.</p>
-          <form id="joinForm" class="stack-form" novalidate>
-            <label class="sr-only" for="roundCode">Código de ronda</label>
-            <input id="roundCode" name="roundCode" class="code-input" type="text" autocomplete="off" maxlength="6" placeholder="A7K92X" aria-describedby="joinMessage" />
-            <button class="button button-dark" type="submit">Unirse</button>
-            <p id="joinMessage" class="form-message" role="status" aria-live="polite"></p>
-          </form>
-        </section>
-      </section>
-      <img class="landing-papel-banner" src="assets/ofrenda/papel-muertos.webp" alt="" aria-hidden="true" />
-      <img class="landing-monster" src="assets/pan-monster.webp" alt="Monstruo caricaturesco de Pan de Muerto" />
-      <section class="feature-strip" aria-label="Características"><p><span>01</span> Código para entrar</p><p><span>02</span> Persecución compartida</p><p><span>03</span> Preguntas en vivo</p></section>
-      <section class="ofrenda-gallery" aria-label="Ofrenda de Pan de Muerto">
-        <div class="ofrenda-copy">
-          <p class="kicker">LA OFRENDA</p>
-          <h2>Pan, flores y una carrera para recordar.</h2>
-          <img class="ofrenda-calacas" src="assets/ofrenda/calacas-musica.webp" alt="" aria-hidden="true" />
-        </div>
-        <div class="ofrenda-images" aria-hidden="true">
-          <img class="ofrenda-altar-image" src="assets/ofrenda/altar.webp" alt="" />
-          <img class="ofrenda-pan-image" src="assets/ofrenda/pan-tradicional.webp" alt="" />
-          <img class="ofrenda-pan-floral-image" src="assets/ofrenda/pan-floral.webp" alt="" />
-        </div>
+      <section class="join-content">
+        <p class="kicker">LA NOCHE ESTÁ POR COMENZAR</p>
+        <h1>Ronda Halloween</h1>
+        <form id="joinForm" class="stack-form" novalidate>
+          <label for="roundCode">Código de la ronda</label>
+          <input id="roundCode" name="roundCode" class="code-input" type="text" autocomplete="off" maxlength="6" placeholder="A7K92X" aria-describedby="joinMessage" />
+          <button class="button button-primary button-large" type="submit">Entrar a la sala</button>
+          <p id="joinMessage" class="form-message" role="status" aria-live="polite"></p>
+        </form>
       </section>
     </main>
-    <script type="module" src="app.js"></script>
+    <script type="module" src="app.js?v=20260925-1"></script>
+    <script type="module" src="js/entry-scene.js?v=20260925-1"></script>
   </body>
 </html>

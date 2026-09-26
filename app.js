@@ -1,4 +1,4 @@
-import { getRound } from "./round-service.js";
+import { getRound } from "./round-service.js?v=20260925-1";
 
 const form = document.querySelector("#joinForm");
 const input = document.querySelector("#roundCode");

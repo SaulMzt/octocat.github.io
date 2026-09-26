@@ -1,7 +1,7 @@
-import { finishQuestionSpin, getRound, joinPresence, startQuestionSpin, watchEntries, watchPresence, watchQuestions, watchRound } from "./round-service.js?v=20260919-4";
-import { playButtonSound, playEliminationSound, playRaceSound, playWheelSound, playWinnerSound, setAmbientMusic, setMasterVolume, stopWheelSound, unlockWheelSound } from "./wheel-sound.js";
-import { drawWheel, spinWheel } from "./wheel.js";
-import { renderRace, runRace, showRaceWinner, stopRace } from "./race.js?v=20260919-4";
+import { finishQuestionSpin, getRound, joinPresence, startQuestionSpin, watchEntries, watchPresence, watchQuestions, watchRound } from "./round-service.js?v=20260925-1";
+import { playButtonSound, playCountdownSound, playEliminationSound, playRaceSound, playWheelSound, playWinnerSound, setEffectsEnabled, setMusicPhase, setAmbientMusic, setMasterVolume, stopWheelSound, unlockWheelSound } from "./wheel-sound.js?v=20260925-1";
+import { drawWheel, spinWheel, stopWheel } from "./wheel.js?v=20260925-1";
+import { renderRace, runRace, showRaceWinner, stopRace } from "./race.js?v=20260925-1";
 
 const code = new URLSearchParams(location.search).get("code")?.toUpperCase();
 const $ = (selector) => document.querySelector(selector);
@@ -19,6 +19,10 @@ let questionSpinId = "";
 let leavePresence;
 let localMuted = false;
 let localVolume;
+let unsubscribers = [];
+let finishTimer;
+let entriesReady = false;
+let questionsReady = false;
 
 if (!code) location.replace("index.html");
 
@@ -50,33 +54,45 @@ $("#roomJoinForm").addEventListener("submit", async (event) => {
 
 function startRoom() {
   $("#roomCode").textContent = code;
-  watchEntries(code, (list) => { entries = list; renderSelectionStage(); }, connectionError);
-  watchQuestions(code, (list) => { questions = list; renderSelectionStage(); }, connectionError);
-  watchPresence(code, renderPresence, connectionError);
-  watchRound(code, handleRound, connectionError);
+  unsubscribers.forEach(unsubscribe => unsubscribe());
+  unsubscribers = [
+    watchEntries(code, list => { entries = list; entriesReady = true; renderSelectionStage(); if (round) handleRound(round); }, connectionError),
+    watchQuestions(code, list => { questions = list; questionsReady = true; renderSelectionStage(); if (round) handleRound(round); }, connectionError),
+    watchPresence(code, renderPresence, connectionError),
+    watchRound(code, handleRound, connectionError)
+  ];
 }
 
 function handleRound(nextRound) {
   if (!nextRound) return;
+  const previousStatus = round?.status;
   round = nextRound;
+  if (round.questionStatus !== "WAITING") $("#roomQuestionPrompt").classList.add("is-hidden");
+  if (round.status === "WAITING" && previousStatus !== "WAITING") {
+    clearTimeout(finishTimer); stopWheel(wheel); stopRace(raceStage); stopWheelSound();
+    wheelStage.classList.remove("is-spinning");
+    spinId = ""; questionSpinId = "";
+    document.querySelectorAll(".winner-overlay").forEach(element => element.classList.add("is-hidden"));
+  }
   const effectiveVolume = localMuted ? 0 : (localVolume ?? round.volume ?? .72);
   setMasterVolume(effectiveVolume);
-  setAmbientMusic(Boolean(round.sound !== false && round.music && !localMuted));
+  setEffectsEnabled(round.sound !== false && !localMuted);
+  setAmbientMusic(Boolean(round.music && !localMuted));
   if (localVolume === undefined) $("#roomVolume").value = Math.round((round.volume ?? .72) * 100);
   $("#roomTitle").textContent = round.title;
-  $("#roomStatus").textContent = round.questionStatus === "WAITING" ? "La persona seleccionada puede girar por una pregunta." : round.questionStatus === "SPINNING" ? "La ruleta de preguntas está girando..." : round.status === "SPINNING" ? "El Pan de Muerto viene detrás del grupo..." : round.status === "FINISHED" ? "Alguien logró escapar." : "Esperando a que el administrador inicie la persecución...";
+  $("#roomStatus").textContent = round.questionStatus === "WAITING" ? "La persona seleccionada puede girar por una pregunta." : round.questionStatus === "SPINNING" ? "La ruleta de preguntas está girando..." : round.status === "SPINNING" ? "La calabaza está al acecho..." : round.status === "FINISHED" ? "Alguien logró escapar." : "Esperando a que comience la persecución...";
   renderSelectionStage();
 
-  if (round.status === "SPINNING" && round.spin && spinId !== `${round.spin.spinNumber}-spinning`) {
+  if (entriesReady && round.status === "SPINNING" && round.spin && spinId !== `${round.spin.spinNumber}-spinning`) {
     spinId = `${round.spin.spinNumber}-spinning`;
     runSpin(round.spin, false);
   }
-  if (round.status === "FINISHED" && round.winner && spinId !== `${round.winner.spinNumber}-finished`) {
+  if (entriesReady && round.status === "FINISHED" && round.winner && spinId !== `${round.winner.spinNumber}-finished`) {
     spinId = `${round.winner.spinNumber}-finished`;
     stopWheelSound();
     showWinner(round.winner, round.confetti);
   }
-  if (round.questionStatus === "SPINNING" && round.questionSpin && questionSpinId !== `${round.questionSpin.spinNumber}-spinning`) {
+  if (questionsReady && round.questionStatus === "SPINNING" && round.questionSpin && questionSpinId !== `${round.questionSpin.spinNumber}-spinning`) {
     $("#roomQuestionPrompt").classList.add("is-hidden");
     questionSpinId = `${round.questionSpin.spinNumber}-spinning`;
     runSpin(round.questionSpin, true);
@@ -95,10 +111,11 @@ function renderSelectionStage() {
   raceStage.classList.toggle("is-hidden", showingQuestions);
   if (showingQuestions) {
     const items = questions.filter((item) => item.enabled);
-    drawWheel(wheel, items);
+    if (!wheelStage.classList.contains("is-spinning")) drawWheel(wheel, items);
     $("#roomWheelCount").textContent = items.length;
   } else if (!raceStage.classList.contains("is-running")) {
-    renderRace(raceStage, entries);
+    if (round?.status === "FINISHED" && round.winner) showRaceWinner(raceStage, entries, round.winner);
+    else renderRace(raceStage, entries);
   }
 }
 
@@ -113,8 +130,19 @@ function runSpin(spin, questionSpin) {
     });
     return;
   }
-  if (round.sound !== false && !localMuted) playRaceSound(spin.durationMs);
-  runRace(raceStage, entries, spin, { onCatch: round.sound !== false && !localMuted ? playEliminationSound : undefined });
+  let audioStarted = false;
+  runRace(raceStage, entries, spin, {
+    onCountdown: playCountdownSound,
+    onPhase: phase => {
+      if (["walking", "running", "tension"].includes(phase) && !audioStarted) {
+        audioStarted = true;
+        playRaceSound(Math.max(0, spin.durationMs + (spin.countdownMs ?? 2100) - Math.max(0, Date.now() - (spin.startedAt?.toMillis?.() || Date.now()))));
+      }
+      setMusicPhase(phase);
+    },
+    onCatch: playEliminationSound,
+    onFinish: stopWheelSound
+  });
 }
 
 function showWinner(winner, confetti) {
@@ -128,7 +156,9 @@ function showWinner(winner, confetti) {
 
 function showQuestionPrompt() {
   if (!round?.questionMode || round.questionStatus !== "WAITING") return;
-  $("#roomQuestionPromptDetail").textContent = `${round.winner?.winnerName || "La persona seleccionada"} puede iniciar la segunda ruleta.`;
+  const available = questions.some(question => question.enabled && !question.retired);
+  $("#roomQuestionSpinButton").disabled = !available;
+  $("#roomQuestionPromptDetail").textContent = available ? `${round.winner?.winnerName || "La persona seleccionada"} puede iniciar la segunda ruleta.` : "No quedan preguntas activas. El administrador continuará la ronda.";
   $("#roomQuestionPrompt").classList.remove("is-hidden");
 }
 
@@ -149,9 +179,13 @@ async function spinQuestion() {
 }
 
 function finishQuestionAfterSpin() {
-  window.setTimeout(async () => {
-    const freshRound = await getRound(code);
-    if (freshRound?.questionStatus === "SPINNING") await finishQuestionSpin(freshRound);
+  clearTimeout(finishTimer);
+  const number = round.questionSpin?.spinNumber;
+  finishTimer = window.setTimeout(async () => {
+    try {
+      const freshRound = await getRound(code);
+      if (freshRound?.questionStatus === "SPINNING" && freshRound.questionSpin?.spinNumber === number) await finishQuestionSpin(freshRound);
+    } catch { connectionError(); }
   }, 180);
 }
 
@@ -181,9 +215,9 @@ function connectionError() { $("#roomStatus").textContent = "Reconectando..."; }
 $("#roomCloseWinner").addEventListener("click", () => { $("#roomWinnerOverlay").classList.add("is-hidden"); window.requestAnimationFrame(showQuestionPrompt); });
 $("#roomQuestionSpinButton").addEventListener("click", spinQuestion);
 $("#roomCloseQuestionResult").addEventListener("click", () => $("#roomQuestionResult").classList.add("is-hidden"));
-$("#roomAudioToggle").addEventListener("click", async () => { await unlockWheelSound(); localMuted = !localMuted; $("#roomAudioToggle").textContent = localMuted ? "×" : "♪"; $("#roomAudioToggle").setAttribute("aria-label", localMuted ? "Activar audio" : "Silenciar audio"); setMasterVolume(localMuted ? 0 : (localVolume ?? round?.volume ?? .72)); setAmbientMusic(Boolean(round?.sound !== false && round?.music && !localMuted)); if (!localMuted) playButtonSound(); });
-$("#roomVolume").addEventListener("input", async (event) => { await unlockWheelSound(); localVolume = Number(event.target.value) / 100; localMuted = false; $("#roomAudioToggle").textContent = "♪"; setMasterVolume(localVolume); if (round?.sound !== false) playButtonSound(); });
+$("#roomAudioToggle").addEventListener("click", async () => { await unlockWheelSound(); localMuted = !localMuted; $("#roomAudioToggle").textContent = localMuted ? "×" : "♪"; $("#roomAudioToggle").setAttribute("aria-label", localMuted ? "Activar audio" : "Silenciar audio"); setMasterVolume(localMuted ? 0 : (localVolume ?? round?.volume ?? .72)); setEffectsEnabled(round?.sound !== false && !localMuted); setAmbientMusic(Boolean(round?.music && !localMuted)); if (!localMuted) playButtonSound(); });
+$("#roomVolume").addEventListener("input", async (event) => { await unlockWheelSound(); localVolume = Number(event.target.value) / 100; localMuted = false; $("#roomAudioToggle").textContent = "♪"; $("#roomAudioToggle").setAttribute("aria-label", "Silenciar audio"); setMasterVolume(localVolume); setEffectsEnabled(round?.sound !== false); setAmbientMusic(Boolean(round?.music)); if (round?.sound !== false) playButtonSound(); });
 document.addEventListener("click", (event) => { if (round?.sound !== false && !localMuted && event.target.closest("button")) playButtonSound(); });
 document.addEventListener("pointerdown", () => unlockWheelSound(), { once: true });
 document.addEventListener("keydown", () => unlockWheelSound(), { once: true });
-window.addEventListener("beforeunload", () => { stopWheelSound(); stopRace(raceStage); setAmbientMusic(false); leavePresence?.(); });
+window.addEventListener("pagehide", () => { clearTimeout(finishTimer); unsubscribers.forEach(unsubscribe => unsubscribe()); stopWheel(wheel); stopWheelSound(); stopRace(raceStage); setAmbientMusic(false); leavePresence?.(); });

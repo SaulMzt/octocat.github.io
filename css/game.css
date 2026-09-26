@@ -1,0 +1,17 @@
+.race-stage { position:relative; width:100%; aspect-ratio:16 / 9; max-height:620px; overflow:hidden; border:1px solid #555365; border-radius:8px; isolation:isolate; background:#252735; }
+.game-canvas { display:block; width:100%; height:100%; }
+.game-hud { position:absolute; inset:18px 20px auto; display:flex; align-items:center; justify-content:space-between; gap:12px; pointer-events:none; }
+.game-location { font:.62rem "DM Mono",monospace; color:#d5cfcf; }
+.game-remaining { flex:none; padding:6px 9px; border:1px solid #e5d5a938; border-radius:4px; background:#151a25d9; color:#e2d6b8; font:.68rem "DM Mono",monospace; }
+.game-countdown { position:absolute; inset:0; display:grid; place-content:center; pointer-events:none; font-size:6rem; font-weight:800; color:#f3c47e; text-shadow:0 5px 0 #382632,0 12px 38px #0009; }
+.game-countdown:not(:empty) { background:#0d122348; }
+.race-caption { position:absolute; inset:auto 0 0; min-height:43px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 17px; border-top:1px solid #ffffff10; background:#0e1523d9; backdrop-filter:blur(4px); }
+.race-caption strong { color:#e9dbc2; font-size:.76rem; }
+.race-caption span { color:#a5b0bf; font-size:.64rem; text-align:right; }
+.has-winner .race-caption { border-color:#dcca7133; }
+@media (max-width:560px) {
+  .race-stage { aspect-ratio:60 / 73; max-height:none; }
+  .game-hud { inset:13px 12px auto; gap:6px; } .game-location { font-size:.48rem; } .game-remaining { font-size:.54rem; padding:5px 6px; }
+  .race-caption { min-height:48px; flex-direction:column; align-items:flex-start; gap:3px; padding:8px 12px; }
+  .race-caption strong { font-size:.69rem; } .race-caption span { font-size:.6rem; }
+}

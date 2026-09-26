@@ -1,4 +1,10 @@
-const PALETTE = ["#FF7A59", "#F3C64E", "#4BC7B5", "#5B8CFF", "#B484F2", "#EE7196", "#77B84F", "#ED9857"];
+const PALETTE = ["#EDAC72", "#B5A0D7", "#B5CC8D", "#E2CFA1", "#88B8AD", "#D5A1B5"];
+const spins = new WeakMap();
+export function stopWheel(canvas) {
+  const animation = spins.get(canvas);
+  if (animation) { animation.onfinish = null; animation.cancel(); spins.delete(canvas); }
+  canvas.style.transform = ""; canvas.dataset.rotation = "0";
+}
 
 function wheelLabelLines(ctx, value, maxWidth, maxLines) {
   const words = String(value || "").trim().split(/\s+/).filter(Boolean);
@@ -99,6 +105,7 @@ export function drawWheel(canvas, entries) {
 }
 
 export function spinWheel(canvas, spin, onFinish) {
+  stopWheel(canvas);
   const angle = 360 / spin.total;
   const target = (360 - ((spin.targetIndex + .5) * angle) % 360) % 360;
   const current = Number(canvas.dataset.rotation || 0);
@@ -111,7 +118,9 @@ export function spinWheel(canvas, spin, onFinish) {
   animation.onfinish = () => {
     canvas.dataset.rotation = String(finalRotation);
     canvas.style.transform = `rotate(${finalRotation}deg)`;
+    animation.cancel(); spins.delete(canvas);
     onFinish?.();
   };
+  spins.set(canvas, animation);
   return animation;
 }

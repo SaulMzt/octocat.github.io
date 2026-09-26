@@ -21,9 +21,15 @@ export async function readPublishedSheet(url) {
   return { columns: rows[0].map((value, index) => String(value || `Columna ${index + 1}`)), data: rows.slice(1).filter((row) => row.some((value) => String(value).trim())) };
 }
 function toCsvUrl(url) {
-  if (url.includes("output=csv")) return url;
-  const match = url.match(/\/spreadsheets\/d\/([^/]+)/);
-  if (!match) return url;
-  const gid = new URL(url).searchParams.get("gid") || "0";
+  const parsed = new URL(url);
+  if (!["https:", "http:"].includes(parsed.protocol)) throw new Error("Escribe un enlace válido de Google Sheets o CSV.");
+  if (parsed.searchParams.get("output") === "csv" || parsed.searchParams.get("format") === "csv") return url;
+  if (parsed.hostname === "docs.google.com" && /\/spreadsheets\/d\/e\//.test(parsed.pathname)) {
+    parsed.pathname = parsed.pathname.replace(/\/pubhtml$/, "/pub");
+    parsed.searchParams.set("output", "csv"); return parsed.href;
+  }
+  const match = parsed.pathname.match(/\/spreadsheets\/d\/([^/]+)/);
+  if (parsed.hostname !== "docs.google.com" || !match) return url;
+  const gid = parsed.searchParams.get("gid") || new URLSearchParams(parsed.hash.slice(1)).get("gid") || "0";
   return `https://docs.google.com/spreadsheets/d/${match[1]}/export?format=csv&gid=${encodeURIComponent(gid)}`;
 }

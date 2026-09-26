@@ -3,20 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#1b102b" />
-    <link rel="icon" type="image/webp" href="assets/pan-monster.webp" />
-    <title>Administrar | Ronda de Muertos</title>
+    <meta name="theme-color" content="#0d1017" />
+    <link rel="icon" type="image/svg+xml" href="assets/icons/pumpkin.svg" />
+    <title>Centro de control | Ronda Halloween</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=20260919-4" />
+    <link rel="stylesheet" href="styles.css?v=20260925-1" />
+    <link rel="stylesheet" href="css/admin.css?v=20260925-1" />
+    <link rel="stylesheet" href="css/game.css?v=20260925-1" />
   </head>
   <body class="site-body admin-body">
     <main id="adminLogin" class="access-screen">
       <section class="access-card">
-        <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>Ronda de Muertos</a>
+        <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>RONDA <small>HALLOWEEN</small></a>
         <p class="kicker">ZONA PRIVADA</p>
-        <h1>Prepara una experiencia que nadie olvidará.</h1>
+        <h1>La noche empieza contigo.</h1>
         <form id="loginForm" class="stack-form">
           <label for="adminPassword">Contraseña de administrador</label>
           <input id="adminPassword" type="password" autocomplete="current-password" required />
@@ -28,10 +30,10 @@
 
     <main id="adminApp" class="admin-layout is-hidden">
       <header class="app-header">
-        <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>Ronda de Muertos</a>
+        <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>RONDA <small>HALLOWEEN</small></a>
         <div class="header-actions">
           <span id="connectionStatus" class="status-chip" data-status="online">En línea</span>
-          <button id="newRoundButton" class="icon-button" type="button" title="Crear otra ronda" aria-label="Crear otra ronda">+</button>
+          <button id="newRoundButton" class="icon-button" type="button" title="Crear otra ronda" aria-label="Crear otra ronda"><img src="assets/icons/plus.svg" alt="" /></button>
           <button id="logoutButton" class="button button-quiet" type="button">Salir</button>
         </div>
       </header>
@@ -40,7 +42,7 @@
         <div class="setup-intro">
           <p class="kicker">NUEVA RONDA</p>
           <h1>Que comience la persecución.</h1>
-          <p>Genera un código privado, reúne a los participantes y libera al Pan de Muerto en toda la sala.</p>
+          <p>Una sala, un grupo de valientes y una sola persona que escapará de la medianoche.</p>
         </div>
         <form id="createRoundForm" class="create-round-form">
           <label for="roundTitle">Título de la ronda</label>
@@ -53,14 +55,15 @@
       <section id="roundDashboard" class="dashboard is-hidden">
         <div class="round-banner">
           <div>
-            <p class="kicker">RONDA ACTIVA</p>
+            <p class="kicker">CENTRO DE CONTROL / RONDA EN VIVO</p>
             <h1 id="dashboardTitle">Mi ronda</h1>
           </div>
           <div class="share-code">
             <span>CÓDIGO DE RONDA</span>
             <strong id="roundCodeDisplay">------</strong>
-            <button id="copyCodeButton" class="icon-button small" type="button" title="Copiar código" aria-label="Copiar código">⧉</button>
+            <button id="copyCodeButton" class="icon-button small" type="button" title="Copiar código" aria-label="Copiar código"><img src="assets/icons/copy.svg" alt="" /></button>
             <button id="copyLinkButton" class="button button-quiet" type="button">Copiar enlace</button>
+            <output id="copyFeedback" class="copy-feedback" aria-live="polite"></output>
           </div>
         </div>
 
@@ -68,7 +71,7 @@
           <aside class="control-column">
             <section class="panel entry-panel">
               <div class="panel-heading">
-                <div><p class="kicker">LISTA</p><h2>Participantes / Opciones</h2></div>
+                <div><p class="kicker">LOS VALIENTES</p><h2>Participantes / Opciones</h2></div>
                 <span id="entryCount" class="count-badge">0</span>
               </div>
               <form id="addEntryForm" class="add-entry-form">
@@ -99,7 +102,7 @@
 
             <section id="questionsPanel" class="panel questions-panel is-hidden">
               <div class="panel-heading">
-                <div><p class="kicker">SEGUNDA RULETA</p><h2>Preguntas</h2></div>
+                <div><p class="kicker">SEGUNDA PRUEBA</p><h2>Preguntas</h2></div>
                 <span id="questionCount" class="count-badge">0</span>
               </div>
               <form id="addQuestionForm" class="question-entry-form">
@@ -133,7 +136,7 @@
             <div class="stage-meta">
               <span id="roundState" class="state-label">ESPERANDO</span>
               <span id="stageHint">Configura las opciones para comenzar.</span>
-              <button id="fullscreenButton" class="icon-button stage-fullscreen" type="button" title="Ver selección a pantalla completa" aria-label="Ver selección a pantalla completa">⛶</button>
+              <button id="fullscreenButton" class="icon-button stage-fullscreen" type="button" title="Ver selección a pantalla completa" aria-label="Ver selección a pantalla completa"><img src="assets/icons/maximize.svg" alt="" /></button>
             </div>
             <div id="wheelDock" class="wheel-dock">
               <div id="adminRaceStage" class="race-stage"></div>
@@ -152,16 +155,23 @@
 
           <aside class="settings-column">
             <section class="panel compact-panel settings-panel">
-              <p class="kicker">CONFIGURACIÓN</p>
+              <div class="settings-heading"><p class="kicker">AJUSTES DE LA NOCHE</p><button id="soundTestButton" class="button button-quiet sound-preview-button" type="button"><img src="assets/icons/volume-2.svg" alt="" /> Probar sonido</button></div>
+              <div class="settings-grid">
+              <div class="setting-group">
               <label class="toggle-row" for="soundToggle"><input id="soundToggle" type="checkbox" /><span class="toggle-ui" aria-hidden="true"></span><span>Efectos de sonido</span></label>
               <label class="toggle-row" for="musicToggle"><input id="musicToggle" type="checkbox" /><span class="toggle-ui" aria-hidden="true"></span><span>Ambientación musical</span></label>
-              <label class="field-label" for="volumeRange">Volumen</label>
+              <label class="volume-label" for="volumeRange">Volumen <output id="volumeValue">72%</output></label>
               <input id="volumeRange" class="volume-range" type="range" min="0" max="100" value="65" />
-              <button id="soundTestButton" class="button button-quiet sound-preview-button" type="button"><span aria-hidden="true">♪</span> Probar sonido</button>
+              </div>
+              <div class="setting-group">
               <label class="toggle-row" for="confettiToggle"><input id="confettiToggle" type="checkbox" checked /><span class="toggle-ui" aria-hidden="true"></span><span>Confeti</span></label>
               <label class="toggle-row" for="questionModeToggle"><input id="questionModeToggle" type="checkbox" /><span class="toggle-ui" aria-hidden="true"></span><span>Preguntas después del ganador</span></label>
+              </div>
+              <div class="setting-group">
               <label class="field-label" for="durationSelect">Duración de la selección</label>
               <select id="durationSelect"><option value="5000">5 segundos</option><option value="7000" selected>7 segundos</option><option value="9000">9 segundos</option></select>
+              </div>
+              </div>
             </section>
           </aside>
         </div>
@@ -175,7 +185,7 @@
       <form method="dialog" class="dialog-card wide"><button class="dialog-close" value="cancel" aria-label="Cerrar">×</button><p class="kicker">VISTA PREVIA</p><h2>Importar archivo</h2><p id="importSummary">Analizando archivo...</p><label for="importColumn">Columna a importar</label><select id="importColumn"></select><div id="importPreview" class="import-preview"></div><div class="dialog-actions"><button value="cancel" class="button button-quiet">Cancelar</button><button id="importConfirmButton" value="default" class="button button-primary">Importar registros</button></div></form>
     </dialog>
     <dialog id="sheetsDialog" class="app-dialog">
-      <form method="dialog" class="dialog-card"><button class="dialog-close" value="cancel" aria-label="Cerrar">×</button><p class="kicker">GOOGLE SHEETS</p><h2>Importa una hoja publicada</h2><p>Usa una URL de CSV publicada desde Google Sheets. La conexión OAuth queda preparada para el backend, sin exponer claves en el navegador.</p><label for="sheetUrl">URL de CSV o de Google Sheets</label><input id="sheetUrl" type="url" placeholder="https://docs.google.com/..." /><label for="sheetName">Hoja</label><input id="sheetName" type="text" placeholder="Participantes" /><div class="dialog-actions"><button value="cancel" class="button button-quiet">Cancelar</button><button id="sheetPreviewButton" value="default" class="button button-primary">Ver vista previa</button></div><p id="sheetMessage" class="form-message"></p></form>
+      <form method="dialog" class="dialog-card"><button class="dialog-close" value="cancel" aria-label="Cerrar">×</button><p class="kicker">GOOGLE SHEETS</p><h2>Importa una hoja publicada</h2><p>Enlace de una hoja pública o publicada como CSV.</p><label for="sheetUrl">URL de CSV o de Google Sheets</label><input id="sheetUrl" type="url" placeholder="https://docs.google.com/..." /><div class="dialog-actions"><button value="cancel" class="button button-quiet">Cancelar</button><button id="sheetPreviewButton" value="default" class="button button-primary">Ver vista previa</button></div><p id="sheetMessage" class="form-message"></p></form>
     </dialog>
 
     <dialog id="bulkQuestionsDialog" class="app-dialog">
@@ -186,11 +196,11 @@
       <button id="exitFullscreenButton" class="icon-button fullscreen-close" type="button" aria-label="Cerrar pantalla completa" title="Cerrar">×</button>
       <div id="fullscreenWheelMount" class="fullscreen-wheel-mount"></div>
       <button id="fullscreenSpinButton" class="button button-primary fullscreen-spin" type="button">INICIAR PERSECUCIÓN</button>
-      <section id="fullscreenWinner" class="fullscreen-winner is-hidden" aria-live="assertive"><div id="fullscreenConfettiLayer" class="confetti-layer" aria-hidden="true"></div><p id="fullscreenWinnerLabel" class="kicker">RESULTADO</p><h2 id="fullscreenWinnerName"></h2><button id="fullscreenWinnerContinue" class="button button-dark" type="button">Continuar</button></section>
+      <section id="fullscreenWinner" class="fullscreen-winner is-hidden" aria-live="assertive"><div id="fullscreenConfettiLayer" class="confetti-layer" aria-hidden="true"></div><p id="fullscreenWinnerLabel" class="kicker">RESULTADO</p><h2 id="fullscreenWinnerName"></h2><button id="fullscreenWinnerContinue" class="button button-dark" type="button">Continuar</button><button id="fullscreenSkipQuestion" class="button button-quiet skip-question is-hidden" type="button">Omitir pregunta</button></section>
     </section>
     <section id="winnerOverlay" class="winner-overlay is-hidden" aria-live="assertive"><div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div><div class="winner-content"><p>✦ SOBREVIVIENTE</p><h2 id="winnerName">Nombre</h2><span id="winnerDetail">Persecución #1</span><button id="closeWinnerButton" class="button button-dark" type="button">Continuar</button></div></section>
-    <section id="questionPromptOverlay" class="winner-overlay question-prompt is-hidden" aria-live="assertive"><div class="winner-content"><p>SEGUNDA RULETA</p><h2>Ahora gira por una pregunta</h2><span id="questionPromptDetail">La persona seleccionada elegirá el siguiente tema.</span><button id="questionPromptSpinButton" class="button button-primary" type="button">GIRAR PREGUNTA</button></div></section>
+    <section id="questionPromptOverlay" class="winner-overlay question-prompt is-hidden" aria-live="assertive"><div class="winner-content"><p>SEGUNDA PRUEBA</p><h2>Ahora gira por una pregunta</h2><span id="questionPromptDetail">La persona seleccionada elegirá el siguiente tema.</span><button id="questionPromptSpinButton" class="button button-primary" type="button">GIRAR PREGUNTA</button><button id="skipQuestionButton" class="button button-quiet skip-question" type="button">Omitir pregunta</button></div></section>
     <section id="questionResultOverlay" class="winner-overlay question-result is-hidden" aria-live="assertive"><div id="questionConfettiLayer" class="confetti-layer" aria-hidden="true"></div><div class="winner-content"><p>💬 PREGUNTA SELECCIONADA</p><h2 id="questionResultText"></h2><button id="closeQuestionResultButton" class="button button-dark" type="button">Continuar</button></div></section>
-    <script type="module" src="admin.js?v=20260919-6"></script>
+    <script type="module" src="admin.js?v=20260925-1"></script>
   </body>
 </html>
