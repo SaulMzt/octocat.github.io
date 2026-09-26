@@ -96,6 +96,14 @@ function limb(ctx, x, y, length, angle, color, width, handColor) {
   ctx.restore();
 }
 
+function runningArm(ctx, x, y, length, swing, color, width, handColor) {
+  ctx.save();ctx.translate(x,y);ctx.rotate(swing);
+  // The elbow bends forward, toward the direction of travel (+x).
+  path(ctx,[[0,0],[-length*.12,length*.58],[length*.58,length*.27]],null,color,width);
+  ellipse(ctx,length*.58,length*.27,width*.62,width*.5,handColor);
+  ctx.restore();
+}
+
 export function drawRunner(ctx,x,y,scale,t,variant,color,state) {
   const running=state==="running" || state==="scared", celebrating=state==="winner";
   const phase=t*17+variant, stride=running?Math.sin(phase)*.85:celebrating?Math.sin(t*7)*.2:0;
@@ -106,14 +114,18 @@ export function drawRunner(ctx,x,y,scale,t,variant,color,state) {
   const skin=variant%3===0?"#b2d2ba":"#f2c6a4";
   if (variant===3) path(ctx,[[-14,-45],[-25,-1],[0,-12],[23,0],[13,-46]],"#8d5388");
   limb(ctx,-8,-20,21,stride,"#191e31",9);limb(ctx,8,-20,21,-stride,"#191e31",9);
-  limb(ctx,-16,-42,22,celebrating?2.25+Math.sin(t*7)*.12:-stride,skin,7,skin);
-  limb(ctx,16,-42,22,celebrating?-2.25-Math.sin(t*7)*.12:stride,skin,7,skin);
+  if (running) runningArm(ctx,-10,-43,25,stride*.65,skin,7,skin);
+  else limb(ctx,-16,-42,22,celebrating?2.25+Math.sin(t*7)*.12:.18,skin,7,skin);
   box(ctx,-16,-48,32,32,8,color);
   if(variant===2) {
     path(ctx,[[0,-43],[0,-20]],null,"#f3eada",3);
     for(let i=0;i<3;i++) path(ctx,[[-9,-39+i*6],[0,-36+i*6],[9,-39+i*6]],null,"#f3eada",2);
   }
   if(variant===4) for(let i=0;i<3;i++) path(ctx,[[-13,-44+i*9],[13,-38+i*9]],null,"#eee4cf",4);
+  if (running) runningArm(ctx,10,-43,25,-stride*.65,skin,7,skin);
+  else limb(ctx,16,-42,22,celebrating?-2.25-Math.sin(t*7)*.12:-.18,skin,7,skin);
+  ctx.save();
+  if (running) { ctx.translate(5,0);ctx.scale(.9,1); }
   ellipse(ctx,0,-62,20,20,variant===1?"#ddddec":variant===5?"#e98b3f":skin);
   if(variant===0) {
     ellipse(ctx,0,-76,28,5,"#292039");path(ctx,[[-16,-76],[0,-112],[6,-100],[17,-76]],"#4e365b");
@@ -128,6 +140,8 @@ export function drawRunner(ctx,x,y,scale,t,variant,color,state) {
   const eyeHeight = blink ? .65 : fear ? 5 : 3.5;
   ellipse(ctx,-6,-62,3,eyeHeight,"#272538");ellipse(ctx,8,-62,3,eyeHeight,"#272538");
   if(fear) ellipse(ctx,2,-51,4,5,"#493543"); else path(ctx,[[-2,-51],[2,-49],[6,-51]],null,"#604053",2);
+  if (running) ellipse(ctx,19,-58,4,3,variant===1?"#ddddec":variant===5?"#e98b3f":skin);
+  ctx.restore();
   if(celebrating) {
     ctx.save();ctx.translate(34,-88);ctx.rotate(Math.sin(t*3)*.15);
     path(ctx,[[0,-8],[3,-3],[9,0],[3,3],[0,8],[-3,3],[-9,0],[-3,-3]],"#e8ca70");ctx.restore();
@@ -146,7 +160,9 @@ export function drawMonster(ctx,x,y,scale,t,state) {
   ctx.rotate(bite?.17:running?.07:0);
   limb(ctx,-28,-26,29,stride,"#b8753f",17,"#e1ac68");
   limb(ctx,28,-26,29,-stride,"#b8753f",17,"#e1ac68");
-  limb(ctx,-56,-75,43,.5-stride*.6,"#c38a50",13,"#efc88a");
+  const moving = running || state==="walking";
+  if (moving) runningArm(ctx,-49,-70,48,stride*.65,"#ad703e",13,"#e1ac68");
+  else limb(ctx,-56,-75,43,.5-stride*.6,"#c38a50",13,"#efc88a");
   const crust=ctx.createRadialGradient(-22,-111,8,0,-80,74);
   crust.addColorStop(0,"#f5d18c");crust.addColorStop(.5,"#dba15b");crust.addColorStop(.86,"#b77538");crust.addColorStop(1,"#7d482c");
   ellipse(ctx,0,-75,69,59,"#392739");
@@ -166,6 +182,8 @@ export function drawMonster(ctx,x,y,scale,t,state) {
   }
   ellipse(ctx,0,-129,20,15,"#945e33");
   ellipse(ctx,-1,-132,18,13,"#efc180");ellipse(ctx,-5,-137,8,3,"#fce4b4");
+  ctx.save();
+  if (moving) { ctx.translate(7,0);ctx.scale(.9,1); }
   const blink = Math.sin(t*.8)>.99 && !running;
   ellipse(ctx,-23,-89,14,blink?2:15,"#412839");ellipse(ctx,23,-89,14,blink?2:15,"#412839");
   if (!blink) {
@@ -180,7 +198,9 @@ export function drawMonster(ctx,x,y,scale,t,state) {
   ellipse(ctx,0,0,32,17,"#412839");ellipse(ctx,5,9,14,5,"#ce7981");
   for(const tx of [-23,-10,3,16]) path(ctx,[[tx,-12],[tx+9,-13],[tx+5,-2]],"#fff0d2");
   path(ctx,[[-22,8],[-16,0],[-12,13]],"#fff0d2");path(ctx,[[11,13],[16,0],[22,8]],"#fff0d2");ctx.restore();
-  limb(ctx,57,-73,43,bite?-1.35:state==="celebrating"?-2.25+Math.sin(t*7)*.15:stride*.6-.5,"#c38a50",13,"#efc88a");
+  ctx.restore();
+  if (moving && !bite) runningArm(ctx,49,-65,48,-stride*.65,"#c38a50",13,"#efc88a");
+  else limb(ctx,57,-73,43,bite?-1.35:state==="celebrating"?-2.25+Math.sin(t*7)*.15:stride*.6-.5,"#c38a50",13,"#efc88a");
   ctx.restore();
 }
 

@@ -9,7 +9,7 @@ import { readPublishedSheet, readSpreadsheet, valuesForColumn } from "./import-s
 import { deleteProfile, deleteQuestionProfile, getProfiles, getQuestionProfiles, renameProfile, renameQuestionProfile, saveProfile, saveQuestionProfile } from "./profiles.js";
 import { playButtonSound, playCountdownSound, playEliminationSound, playRaceSound, playSoundTest, playWheelSound, playWinnerSound, setAmbientMusic, setEffectsEnabled, setMusicPhase, setMasterVolume, stopWheelSound, unlockWheelSound } from "./wheel-sound.js?v=20260925-1";
 import { drawWheel, spinWheel, stopWheel } from "./wheel.js?v=20260925-1";
-import { renderRace, runRace, showRaceWinner, stopRace } from "./race.js?v=20260925-2";
+import { renderRace, runRace, showRaceWinner, stopRace } from "./race.js?v=20260926-1";
 
 const $ = (selector) => document.querySelector(selector);
 const wheel = $("#adminWheel");

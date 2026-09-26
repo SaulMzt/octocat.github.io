@@ -1,7 +1,7 @@
 import { finishQuestionSpin, getRound, joinPresence, startQuestionSpin, watchEntries, watchPresence, watchQuestions, watchRound } from "./round-service.js?v=20260925-1";
 import { playButtonSound, playCountdownSound, playEliminationSound, playRaceSound, playWheelSound, playWinnerSound, setEffectsEnabled, setMusicPhase, setAmbientMusic, setMasterVolume, stopWheelSound, unlockWheelSound } from "./wheel-sound.js?v=20260925-1";
 import { drawWheel, spinWheel, stopWheel } from "./wheel.js?v=20260925-1";
-import { renderRace, runRace, showRaceWinner, stopRace } from "./race.js?v=20260925-2";
+import { renderRace, runRace, showRaceWinner, stopRace } from "./race.js?v=20260926-1";
 
 const code = new URLSearchParams(location.search).get("code")?.toUpperCase();
 const $ = (selector) => document.querySelector(selector);

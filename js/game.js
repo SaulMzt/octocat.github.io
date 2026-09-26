@@ -1,4 +1,4 @@
-import { COLORS, drawScene, drawRunner, drawMonster, drawName, drawPoof } from "./game-art.js?v=20260925-2";
+import { COLORS, drawScene, drawRunner, drawMonster, drawName, drawPoof } from "./game-art.js?v=20260926-1";
 
 const states = new WeakMap();
 const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
